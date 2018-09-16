@@ -1,2 +1,15 @@
 *.a
 *.pyc
+*.pyo
+*.bak
+*.egg
+*.egg-info
+*.EGG
+*.EGG-INFO
+*.mo
+*.cfg
+*.pyd
+*.dll
+*.exe
+*.tcl
+
