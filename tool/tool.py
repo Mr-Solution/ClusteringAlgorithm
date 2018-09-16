@@ -4,6 +4,7 @@
 some functions
 """
 import numpy as np
+from scipy.spatial import distance
 
 def data_Normalized(data):
     """
@@ -27,3 +28,13 @@ def data_Normalized(data):
 
     data = np.where(np.isnan(data), 0, data)
     return data, b1, b2
+
+def rank_dis_c(fea, a):
+    dist = distance.cdist(fea, fea)
+    dist = dist/np.max(dist)
+    list = np.argsort(dist)
+    rows = np.argsort(list)
+    rodist = rows + rows.T
+    rodist = rodist/np.max(rodist)
+    rodist = (rodist+2)*np.exp((dist*dist)/a)
+    return rodist
