@@ -13,3 +13,5 @@
 *.exe
 *.tcl
 
+__pycache__
+dataset

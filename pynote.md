@@ -18,3 +18,9 @@ coo_matrix(M) 即可得到一个矩阵 M 的稀疏矩阵。
 np.max 求序列的最值，相当于 matlab 中的 max(A)
 
 np.maximum(X, Y) X 与 Y 逐位比较取其大者，相当于 matlab 中的 max(X, Y)
+
+
+
+##### pycharm
+
+pycharm 中的代码文件不要以 test 开头，因为 pycharm 会把所有以 test 开头的文件默认加入 test 测试模块，无法直接运行。
