@@ -7,9 +7,9 @@
 
 python D.sort(), D.argsort(), M = D.sort(), M = D.argsort() 均会将排序后的值赋值给D。但是numpy.sort(D), numpy.argsort(D) 不会改变D的值，这是因为实例D自身的方法通常会改变self的值，我记得有一些方法不会，但我忘记了。
 
-##### sparse
+##### sparse matrix
 
-matlab 可以用 sparse 和 full 两个函数来实现普通矩阵和稀疏矩阵之间的转换。python 中稀疏矩阵的实现可以借助 scipy.sparse，其有多种不同的存储形式，其中与 matlab 中的相对应的是 coo_matrix，用坐标来表示矩阵。
+matlab 可以用 sparse 和 full 两个函数来实现普通矩阵和稀疏矩阵之间的转换。python 中稀疏矩阵的实现可以借助 scipy.sparse，其有多种不同的存储形式，其中与 matlab 中的相对应的是 coo_matrix，用坐标来表示矩阵。得到一个矩阵 SM，SM.todense() 即可得到 full matrix。
 
 coo_matrix(M) 即可得到一个矩阵 M 的稀疏矩阵。
 
@@ -19,7 +19,9 @@ np.max 求序列的最值，相当于 matlab 中的 max(A)
 
 np.maximum(X, Y) X 与 Y 逐位比较取其大者，相当于 matlab 中的 max(X, Y)
 
+##### where
 
+numpy.where()
 
 ##### pycharm
 
