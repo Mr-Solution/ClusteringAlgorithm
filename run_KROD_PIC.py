@@ -33,6 +33,10 @@ if __name__ == '__main__':
     graphW = np.apply_along_axis(f, 1, graphW)
 
     initialCluster = tool.gacNNMerge(dist, NNIndex)
+    numClusters = len(initialCluster)
+    cl = tool.gacMerging(graphW, initialCluster, groupNumber, z)
+
+    print("world")
 
 
 

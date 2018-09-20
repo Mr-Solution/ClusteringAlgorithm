@@ -4,6 +4,7 @@
 some functions
 """
 import numpy as np
+import numpy.linalg as nlg
 from scipy.spatial import distance
 from scipy.sparse import coo_matrix
 
@@ -94,6 +95,78 @@ def gacNNMerge(distance_matrix, NNIndex):
                 clusterLabels = np.where(clusterLabels==assignedCluster[j], assignedCluster[0], clusterLabels)
 
     uniqueLabels = np.unique(clusterLabels)
+    initialClusters = {}    # dict
+    for i in range(len(uniqueLabels)):
+        initialClusters[i] = np.where(clusterLabels == uniqueLabels[i])
+
+    return initialClusters
 
 
+def gacMerging(graphW, initClusters, groupNumbers, strDescr, z):
+    numSample = graphW.shape[0]
+    IminuszW = np.eye(numSample) - z*graphW
+    myInf = 1e10
+    # initialization
+    VERBOSE = True
+
+    if strDescr == "path":
+        complexity_fun = gacZetaEntropy
+        conditionalComplexity_fun = gacZetaCondEntropy
+    elif strDescr == "zeta":
+        complexity_fun = gacPathEntropy
+        conditionalComplexity_fun = gacPathCondEntropy
+    else:
+        print("ERROR")
+        return
+
+    numClusters = len(initClusters)
+    if numClusters <= groupNumbers:
+        print("err! too few initial clusters. Do not need merging!")
+
+    clusterComp = np.zeros((numClusters,1))
+    for i in range(numClusters):
+        clusterComp[i] = complexity_fun(IminuszW[initClusters[i], initClusters[i]])
+
+    if VERBOSE:
+        print("Computing initial table.")
+
+    affinityTab = np.full((numClusters, numClusters), np.inf)
+    for j in range(numClusters):
+        for i in range(j-1):
+            affinityTab[i,j] = -conditionalComplexity_fun(IminuszW, initClusters[i], initClusters[j])
+
+    affinityTab =
+
+def gacPathEntropy(subIminuszW):
+    N = subIminuszW.shape[0]
+    clusterComp = np.dot(nlg.inv(subIminuszW), np.ones((N,1)))
+    clusterComp = np.sum(clusterComp) / (N*N)
+    return  clusterComp
+
+def gacPathCondEntropy(IminuszW, cluster_i, cluster_j):
+    num_i = cluster_i.size
+    num_j = cluster_j.size
+
+    ijGroupIndex = np.vstack((cluster_i, cluster_j))
+
+    y_ij = np.zeros((num_i+num_j, 2))
+    y_ij[:num_i, 0] = 1
+    y_ij[num_i:,1] = 1
+
+    L_ij = np.dot(nlg.inv(IminuszW[ijGroupIndex, ijGroupIndex]), y_ij)
+    L_ij = np.sum(L_ij[:num_i, 0])/(num_i*num_i) + np.sum(L_ij[num_i:, 1])/(num_j*num_j)
+    return L_ij
+
+def gacZetaEntropy(subIminuszW):
+    clusterComp = np.sum(np.log(np.diag(nlg.inv(subIminuszW)).real))/subIminuszW.shape[0]
+    return clusterComp
+
+def gacZetaCondEntropy(IminuszW, cluster_i, cluster_j):
+    num_i = len(cluster_i)
+    num_j = len(cluster_j)
+
+    ijGroupIndex = np.vstack((num_i, num_j))
+    logZetaSelfSim = np.log(np.diag(nlg.inv(IminuszW[ijGroupIndex,ijGroupIndex])).real)
+    L_ij = np.sum(logZetaSelfSim[:num_i])/num_i + np.sum(logZetaSelfSim[num_i:])/num_j
+    return L_ij
 
