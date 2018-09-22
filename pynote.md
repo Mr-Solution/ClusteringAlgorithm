@@ -5,7 +5,7 @@
 
 ##### sort
 
-python D.sort(), D.argsort(), M = D.sort(), M = D.argsort() 均会将排序后的值赋值给D。但是numpy.sort(D), numpy.argsort(D) 不会改变D的值，这是因为实例D自身的方法通常会改变self的值，我记得有一些方法不会，但我忘记了。
+python D.sort(), D.argsort(), M = D.sort(), M = D.argsort() 均会将排序后的值赋值给D。但是 numpy.sort(D), numpy.argsort(D) 不会改变D的值，这是因为实例D自身的方法通常会改变self的值，我记得有一些方法不会，但我忘记了。
 
 ##### sparse matrix
 
@@ -19,9 +19,21 @@ np.max 求序列的最值，相当于 matlab 中的 max(A)
 
 np.maximum(X, Y) X 与 Y 逐位比较取其大者，相当于 matlab 中的 max(X, Y)
 
-##### where
+##### np.where
 
-numpy.where()
+np.where(condition) 返回满足条件的数组<u>下标</u> （或矩阵坐标，以两个向量的形式返回）
+
+np.where(condition, a, b):
+
+​	a = np.array([1,3,2]), b = np.where(a > 1, a, 9) = array([9, 3, 2])
+
+​	相当于 if condition: do a;    else: do b;
+
+np.where(condition, )
+
+##### np.tile()
+
+np.tile(a, (3,1)) 相当于 matlab 中的 repmat(a, 3, 1)
 
 ##### pycharm
 

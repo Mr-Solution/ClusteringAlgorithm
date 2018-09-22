@@ -2,6 +2,7 @@
 
 import tool.tool as tool
 import numpy as np
+from sklearn import metrics
 
 if __name__ == '__main__':
     print("hello")
@@ -25,17 +26,15 @@ if __name__ == '__main__':
     graphW, NNIndex = tool.gacBuildDigraph(dist, K, v)
     graphW = np.around(graphW, decimals=4)
     # from adjacency matrix to probability transition matrix
-    1/np.sum(graphW, 1)
-    graphW
-
     def f(x):
         return x/np.sum(x)
     graphW = np.apply_along_axis(f, 1, graphW)
 
     initialCluster = tool.gacNNMerge(dist, NNIndex)
     numClusters = len(initialCluster)
-    cl = tool.gacMerging(graphW, initialCluster, groupNumber, z)
+    cl = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
 
+    NMI = metrics.adjusted_mutual_info_score(cl, labels)
     print("world")
 
 
