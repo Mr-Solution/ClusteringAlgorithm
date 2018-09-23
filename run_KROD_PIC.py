@@ -35,6 +35,7 @@ if __name__ == '__main__':
     cl = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
 
     NMI = metrics.adjusted_mutual_info_score(cl, labels)
+    print(NMI)
     print("world")
 
 

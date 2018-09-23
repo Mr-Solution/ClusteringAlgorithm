@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
 
-import tool.tool as tool
-import DPC
+import knnDPC
 import numpy as np
 from sklearn import metrics
 from sklearn.decomposition import PCA
+import tool.tool
+import tool.PCA
 
 """
 def pca(data_mat, top_n_feature = 999) :
@@ -38,19 +39,19 @@ if __name__ == '__main__':
     data = np.loadtxt('dataset/COIL20_32.txt')
     fea = data[:, :-1]
     labels = data[:,-1]
-    fea = tool.data_Normalized(fea)
+    fea = tool.tool.data_Normalized(fea)
 
-    # a,b,c = pca(fea, 150)
-    pca = PCA(n_components=150)
-    fea = pca.fit_transform(fea)
+    fea,b,c = tool.PCA.pca(fea, 150)
+    #pca = PCA(n_components=150)
+    #fea = pca.fit_transform(fea)
 
     u = 1
     K = 20
     groupNumber = len(np.unique(labels))
 
-    cl = DPC.DPC(fea, groupNumber, p, u)
+    cl = knnDPC.knnDPC(fea, groupNumber, K, u)
 
-    print('world')
     NMI = metrics.adjusted_mutual_info_score(cl, labels)
     print(NMI)
+    print("world")
     # cl 结果同matlab程序一致，但是NMI不一致，python 低了接近 1%

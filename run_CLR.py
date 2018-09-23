@@ -1,16 +1,24 @@
 # -*- coding:utf-8 -*-
 
+import tool.tool as tool
+import CLR
 import numpy as np
-import ClusteringAlgorithm.CLR as CACLR
+from sklearn import metrics
 
-K = 5
-groupNumber = 20
+if __name__ == '__main__':
+    print("hello")
+    data = np.loadtxt('dataset/COIL20_32.txt')
+    fea = data[:, :-1]
+    labels = data[:,-1]
+    fea = tool.data_Normalized(fea)
 
-fea = np.loadtxt('fea.txt')
-A0 = np.loadtxt('A0.txt')
+    K = 5
+    groupNumber = len(np.unique(labels))
 
-print("debug")
+    print("------ clustering ------")
+    A0 = tool.constructW_PKN(fea, K)
+    cl, S, evs, cs = CLR.CLR(A0, groupNumber, 0, 1)
 
-cl, S, evs, cs = CACLR.CLR(A0, groupNumber, 0, 1)
-
-print("end")
+    NMI = metrics.adjusted_mutual_info_score(cl, labels)
+    print(NMI)
+    print('world')

@@ -38,7 +38,12 @@ def knnDPC(fea, k, K, sigma2):
         pass
 
     for i in range(ND):
-        dist_copy[:,i] = np.sort(dist_copy[:i])
+        dist_copy[:,i] = np.sort(dist_copy[:,i])
+
+    for i in range(1,K):
+        rho = rho + dist_copy[i,:] * dist_copy[i,:]
+
+    rho = np.exp(-rho/k)
 
     maxd = np.max(dist)
 

@@ -18,8 +18,8 @@ if __name__ == '__main__':
 
     cl = DPC.DPC(fea, groupNumber, p, u)
 
-    print('world')
     NMI = metrics.adjusted_mutual_info_score(cl, labels)
     print(NMI)
+    print('world')
     # cl 结果同matlab程序一致，但是NMI不一致，python 低了接近 1%
 

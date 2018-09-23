@@ -73,9 +73,19 @@ def CLR(A0, c, isrobust=0, islocal=1):
                 idxa0 = np.array(range(num))
 
             ai = a0[idxa0]
-            """
-            暂停。matlab 代码 CLR.m line：84
-            """
+            di = dist[i,idxa0]
+            if isrobust == 1:
+                print("to be continued")
+                pass
+            else:
+                ad = ai - 0.5*Lambda*di
+                S[i, idxa0] = EProjSimplex_new(ad)
+
+        A = S
+        A = (A + A.T)/2
+        """
+        暂停。matlab 代码 CLR.m line：95
+        """
 
 
 
@@ -112,3 +122,33 @@ def eig1(A, c, isMax=1, isSym=1):
     eigval_full = d[idx]
 
     return eigvec, eigval, eigval_full
+
+
+def EProjSimplex_new(v, k=1):
+    ft = 1
+    n = len(v)
+
+    v0 = v - np.mean(v) + k/n
+    vmin = np.min(v0)
+
+    if vmin < 0:
+        f = 1
+        lambda_m = 0
+        while abs(f) > 1e-10:
+            v1 = v0 - lambda_m
+            # posidx = v1>0
+            npos = np.sum(v1 > 0)
+            g = -npos
+            f = np.sum(v1[v1>0]) - k
+            lambda_m = lambda_m - f/g
+            ft += 1
+            if ft > 100:
+                x = np.where(v1>0, v1, 0)
+                break
+
+        x = np.where(v1>0, v1, 0)
+
+    else:
+        x = v0
+
+    return x
