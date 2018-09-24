@@ -35,6 +35,14 @@ np.where(condition, )
 
 np.tile(a, (3,1)) 相当于 matlab 中的 repmat(a, 3, 1)
 
+
+
+##### scipy.sparse.csgraph
+
+matlab 中很多与连通图有关的函数都可以在这个模块中找到对应的方法
+
+
+
 ##### pycharm
 
 pycharm 中的代码文件不要以 test 开头，因为 pycharm 会把所有以 test 开头的文件默认加入 test 测试模块，无法直接运行。

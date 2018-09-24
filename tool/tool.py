@@ -263,7 +263,7 @@ def constructW_PKN(X, k=5, issymmetric=1):
 
     W = np.zeros((n,n))
     for i in range(n):
-        id = idx[i, 1:k+1]
+        id = idx[i, 1:k+2]
         di = D[i, id]
         W[i,id] = (di[k]-di)/(k*di[k]-np.sum(di[:k])+np.spacing(1))
 

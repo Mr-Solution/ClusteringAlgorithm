@@ -11,7 +11,7 @@ import numpy as np
 import scipy.sparse
 from scipy.spatial import distance
 
-def CLR(A0, c, isrobust=0, islocal=1):
+def CLR(A0, c=-1, isrobust=0, islocal=1):
     NITER = 30
     zr = 10e-11
     Lambda = 0.1
@@ -29,7 +29,7 @@ def CLR(A0, c, isrobust=0, islocal=1):
     a = abs(evs)
     a[a<zr] = sys.float_info.min    # python3 中最小浮点数。 类似的特殊数字还有 sys.maxsize sys.float_info.max float("inf")
     ad = np.diff(a, axis=0)
-    ad1 = ad/a[2:]
+    ad1 = ad/a[1:]
     ad1[ad1 > 0.85] = 1
     ad1 = ad1 + sys.float_info.min * np.array(range(num-1))
     ad1[0] = 0
@@ -38,7 +38,8 @@ def CLR(A0, c, isrobust=0, islocal=1):
     cs = np.argsort(-ad1)  # 降序排列
     print("Suggested cluster number is:",cs[0:5])
 
-    c = cs[1]
+    if c==-1:
+        c = cs[0]
 
     F = F0[:, :c]
 
@@ -56,7 +57,7 @@ def CLR(A0, c, isrobust=0, islocal=1):
     for i in range(num):
         a0 = A0[i, :]
         if islocal == 1:
-            idxa0 = np.where(a0 > 0)
+            idxa0 = np.where(a0 > 0)[0]
         else:
             idxa0 = np.array(range(num))
 
@@ -66,37 +67,47 @@ def CLR(A0, c, isrobust=0, islocal=1):
         dist = distance.cdist(F, F)
         S = np.zeros((num, num))
         for k in range(num):
-            a0 = A0[i, :]
+            a0 = A0[k, :]
             if islocal == 1:
-                idxa0 = np.where(a0>0)
+                idxa0 = np.where(a0>0)[0]
             else:
                 idxa0 = np.array(range(num))
 
             ai = a0[idxa0]
-            di = dist[i,idxa0]
+            di = dist[k,idxa0]
             if isrobust == 1:
                 print("to be continued")
                 pass
             else:
                 ad = ai - 0.5*Lambda*di
-                S[i, idxa0] = EProjSimplex_new(ad)
+                S[k, idxa0] = EProjSimplex_new(ad)
 
         A = S
         A = (A + A.T)/2
-        """
-        暂停。matlab 代码 CLR.m line：95
-        """
+        D = np.diag(sum(A))
+        L = D - A
+        F_old = F
+        F, idle, ev =eig1(L, c, 0)
+        # evs[:,j+1] = ev
+        evs = np.vstack((evs, ev))
 
+        fn1 = sum(ev[:c])
+        fn2 = sum(ev[:c+1])
+        if fn1 > zr:
+            Lambda = 2*Lambda
+        elif fn2 < zr:
+            Lambda = Lambda/2
+            F = F_old
+        else:
+            break
 
+        print("NITER count:",j)
 
-        
+    clusternum, y = scipy.sparse.csgraph.connected_components(scipy.sparse.coo_matrix(A))
+    if clusternum != c:
+        print("Can not find the correct cluster number")
 
-
-
-
-
-
-
+    return y,S,evs,cs
 
 
 def eig1(A, c, isMax=1, isSym=1):
