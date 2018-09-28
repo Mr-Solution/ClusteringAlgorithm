@@ -271,3 +271,5 @@ def constructW_PKN(X, k=5, issymmetric=1):
         W = (W+W.T)/2
 
     return W
+
+

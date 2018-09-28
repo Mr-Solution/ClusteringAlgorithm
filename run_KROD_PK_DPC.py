@@ -41,17 +41,16 @@ if __name__ == '__main__':
     labels = data[:,-1]
     fea = tool.tool.data_Normalized(fea)
 
-    fea,b,c = tool.PCA.pca(fea, 150)
-    #pca = PCA(n_components=150)
-    #fea = pca.fit_transform(fea)
+    #fea,b,c = tool.PCA.pca(fea, 150)
+    pca = PCA(n_components=150)
+    fea = pca.fit_transform(fea)
 
     u = 1
     K = 20
     groupNumber = len(np.unique(labels))
 
-    cl = knnDPC.knnDPC(fea, groupNumber, K, u)
+    cl = knnDPC.knnDPC1(fea, groupNumber, K, u)
 
     NMI = metrics.adjusted_mutual_info_score(cl, labels)
     print(NMI)
     print("world")
-    # cl 结果同matlab程序一致，但是NMI不一致，python 低了接近 1%
