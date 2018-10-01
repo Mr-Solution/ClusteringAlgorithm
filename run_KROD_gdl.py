@@ -1,7 +1,10 @@
 # -*- coding:utf-8 -*-
 
-import tool.tool as tool
 import numpy as np
+from sklearn import metrics
+import tool.tool as tool
+import GDL
+
 
 if __name__ == '__main__':
     print("hello")
@@ -10,7 +13,12 @@ if __name__ == '__main__':
     labels = data[:,-1]
     fea = tool.data_Normalized(fea)
 
-
-    # NMI = metrics.adjusted_mutual_info_score(cl, labels)
-    # print(NMI)
+    dist = tool.rank_dis_c(fea)
+    dist = dist - np.diag(np.diag(dist))
+    groupNumber = len(np.unique(labels))
+    K=5
+    v = 1
+    cl = GDL.gdl(dist, groupNumber, K, v)
+    NMI = metrics.adjusted_mutual_info_score(cl, labels)
+    print(NMI)
     print('world')

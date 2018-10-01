@@ -33,7 +33,7 @@ def data_Normalized(data):
     return data  # , b1, b2
 
 
-def rank_dis_c(fea, a):
+def rank_dis_c(fea, a=1):
     dist = distance.cdist(fea, fea)
     dist = dist / np.max(dist)
     list = np.argsort(dist)

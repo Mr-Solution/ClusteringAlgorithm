@@ -1,3 +1,4 @@
+"""
 # -*- coding:utf-8 -*-
 
 import numpy as np
@@ -16,8 +17,8 @@ def predict_ncut(fea, nClass):
     return label_pre
 
 """
-data: Num_data X feature_dim
-return W : pair-wise data similarity matrix
+# data: Num_data X feature_dim
+# return W : pair-wise data similarity matrix
 """
 def compute_relation(data, order=2):
     distances = np.square(distance.cdist(data, data))
@@ -57,7 +58,7 @@ def ncut(W, nClass=8):
     Dinvsqrt = 1/np.sqrt(d+2.2204e-16)
     # function spmtimesd
     P = np.dot(np.diag(Dinvsqrt), W)
-    P = np.dot(p, np.diag(Dinvsqrt))
+    P = np.dot(P, np.diag(Dinvsqrt))
 
     options = {
         'issym':1,
@@ -67,5 +68,41 @@ def ncut(W, nClass=8):
         'v0':np.ones(P.shape[0]),
         'p':min(n, max(35,2*nClass)),
     }
+"""
+
+# encoding=utf-8
+import numpy as np
+import tool.tool as tool
+from scipy import linalg as LA
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.preprocessing import normalize
+from sklearn import metrics
+
+def similarity_function(points):
+    res = rbf_kernel(points)
+    for i in range(len(res)):
+        res[i, i] = 0
+    return res
 
 
+def normalized_cut(points, k):
+    A = similarity_function(points)
+    W = np.eye(len(A)) - normalize(A, norm='l1')
+    eigvalues, eigvectors = LA.eig(W)
+    indices = np.argsort(eigvalues)[1:k]
+    return KMeans(n_clusters=k).fit_predict(eigvectors[:, indices])
+
+
+data = np.loadtxt('dataset/COIL20_32.txt')
+X = data[:, :-1]
+y = data[:, -1]
+X = tool.data_Normalized(X)
+groupNumber = len(np.unique(y))
+
+# X, y = make_blobs()
+labels = normalized_cut(X, groupNumber)
+
+NMI = metrics.adjusted_mutual_info_score(y, labels)
+print(NMI)
