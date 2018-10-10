@@ -3,7 +3,11 @@ from sklearn.neighbors import NearestNeighbors
 from scipy.misc import *
 from tool import tool
 
-""" 生成权重矩阵 """
+""" 
+生成权重矩阵 
+欧氏距离的权重矩阵应该是对称的
+ROD的权重矩阵应该是不对称的
+"""
 def w_matrix(data, distance, indices, Ks, a=1):
     n = len(data)
     weight_matrix = np.zeros([n, n])
@@ -61,14 +65,13 @@ def k0graph(X,distance,indices, a=1):
 
 
 def getAffinityMaxtrix(Vc,W):
-    nc = len(Vc)
-    #print(nc)
 
+    nc = len(Vc)
     affinity = np.zeros([nc,nc])
 
     for i in range(nc):
         for j in range(i+1,nc):
-            ij = np.ix_(Vc[i],Vc[j])
+            ij = np.ix_(Vc[i],Vc[j])    # ix_生成一个过滤器 ij，提取Vc[i]行 Vc[j]列的元素
             ji = np.ix_(Vc[j],Vc[i])
 
             W_ij, W_ji = W[ij], W[ji]
@@ -95,9 +98,14 @@ def getAffinityBtwCluster(C1, C2, W):
     #print(affinity)
     return affinity[0,0]
 
+""" 
+Vc : 最邻近点邻接图
+Kc : K近邻
+W : 权重矩阵
+"""
 def getNeighbor(Vc, Kc, W):
+
     Ns, As = [], []
-    #print("affinity")
     A = getAffinityMaxtrix(Vc, W)
 
     for i in range(len(A)):
@@ -116,7 +124,7 @@ def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
     indices = np.argsort(distance, axis=1)[:, 1:Ks + 1]
     distance = np.sort(distance, axis=1)[:, 1:Ks+1]
 
-    cluster = k0graph(data, distance, indices, a)
+    cluster = k0graph(data, distance, indices, a)    # 初始化，把所有的数据点分为 len(cluster) 个簇
     length = 0
     for i in range(len(cluster)):
         length += len(cluster[i])
@@ -124,7 +132,7 @@ def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
     print("data before clustering : ", length)
     W,sigma2 = w_matrix(data, distance, indices, Ks, a)
     #W, sigma2 = tool.gacBuildDigraph(distance, Ks, 1)
-    #print("neighbor")
+
     neighborSet, affinitySet = getNeighbor(cluster, Kc, W)
     currentClusterNum = len(cluster)
 
