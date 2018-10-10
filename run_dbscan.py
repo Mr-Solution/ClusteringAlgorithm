@@ -7,7 +7,10 @@ from sklearn.cluster import DBSCAN
 
 if __name__ == '__main__':
     print("hello")
-    data = np.loadtxt('dataset/COIL20_32.txt')
+    dataset = 'dataset/COIL20_32.txt'
+
+    print("dbscan    dataset =",dataset)
+    data = np.loadtxt(dataset)
     fea = data[:, :-1]
     labels = data[:, -1]
     fea = tool.data_Normalized(fea)

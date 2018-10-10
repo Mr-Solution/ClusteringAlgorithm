@@ -80,6 +80,93 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
     """
     matlab gdlMergingKNN_c line:41
     """
+    curGroupNum = numClusters
+    while True:
+        usingKcCluster = curGroupNum > 1.2*Kc
+        minIndex1, minIndex2 = gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster)
+        cluster1 = initialClusters[minIndex1]
+        cluster2 = initialClusters[minIndex2]
+
+
+def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
+    return minIndex1, minIndex2
+
+
+def gdlInitAffinityTable_knn_c(graphW, initClusters, Kc):
+    numClusters = len(initClusters)
+    affinityTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
+    AsymAffTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
+
+    for j in range(numClusters):
+        cluster_j = initClusters[j]
+        for i in range(j):
+            cluster_i = initClusters[i]
+            affinityTab[i,j] = -computeAverageDegreeAffinity(graphW, cluster_i, cluster_j)
+        #affinityTab[j,j] = -1e10
+
+    # from upper triangular to full symmetric
+    affinityTab += affinityTab.T
+    affinityTab += np.diag(-1e10*np.ones(numClusters))
+
+    # sort
+    inKcCluster = gacFindKcCluster(affinityTab, Kc)
+
+    # computing
+    for j in range(numClusters):
+        cluster_j = initClusters[j]
+        for i in range(j):
+            if inKcCluster[i,j]:
+                tmpAsymAff0, tmpAsymAff1 = gdlComputeAffinity(graphW, initClusters[i], cluster_j)
+                affinityTab[i,j] = tmpAsymAff0 + tmpAsymAff1
+                AsymAffTab[i,j] = tmpAsymAff0
+                AsymAffTab[j,i] = tmpAsymAff1
+            else:
+                affinityTab[i,j] = -1e10
+
+    # from upper triangular to full symmetric
+    affinityTab = np.triu(affinityTab, 1) + np.triu(affinityTab, 1).T + np.diag(np.diag(affinityTab))
+    # affinityTab += np.triu(affinityTab, 1).T
+
+    return affinityTab, AsymAffTab
+
+# 这个函数不对
+def gdlComputeAffinity(pW, cluster_i, cluster_j):
+    num_i = len(cluster_i)
+    num_j = len(cluster_j)
+    sum1 = 0
+    for j in cluster_j:
+        Lij = 0
+        Lji = 0
+        for i in cluster_i:
+            Lij += pW[i, j]
+            Lji += pW[j, i]
+        sum1 += Lij * Lji
+
+    sum2 = 0
+    for i in cluster_i:
+        Lij = 0
+        Lji = 0
+        for j in cluster_j:
+            Lji += pW[j, i]
+            Lij += pW[i, j]
+        sum2 += Lji * Lij
+
+    return sum1/(num_i*num_i), sum2/(num_j*num_j)
+
+
+def computeAverageDegreeAffinity(graphW, cluster_i, cluster_j):
+    sum = 0
+    for i in cluster_i:
+        for j in cluster_j:
+            sum += graphW[i,j] + graphW[j,i]
+    return sum/(len(cluster_i) * len(cluster_j))
+
+def gacFindKcCluster(affinityTab, Kc):
+    Kc = np.ceil(1.2*Kc).astype(np.int)
+    sortedAff, placeholder = gacMink(affinityTab, Kc, 1)
+    inKcCluster = affinityTab <= sortedAff[:,Kc-1].T
+    inKcCluster = inKcCluster | inKcCluster.T
+    return inKcCluster
 
 
 def gacMink (X, k, dim=1):

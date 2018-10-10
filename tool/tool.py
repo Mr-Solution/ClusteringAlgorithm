@@ -36,8 +36,9 @@ def data_Normalized(data):
 def rank_dis_c(fea, a=1):
     dist = distance.cdist(fea, fea)
     dist = dist / np.max(dist)
-    list = np.argsort(dist)
-    rows = np.argsort(list)
+    list = np.argsort(dist)    # order-list
+    rows = np.argsort(list)    # 对 order-list 进行 argsort 排序，得到的方阵中坐标 ij 对应的是 点j在i的order-list中的第几位
+                               # 对应的是公式中的 fi(j)
     rodist = rows + rows.T + 2
     rodist = rodist / np.max(rodist)
     rodist = (rodist) * np.exp((dist * dist) / a)

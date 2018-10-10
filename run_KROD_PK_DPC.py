@@ -1,11 +1,12 @@
 # -*- coding:utf-8 -*-
 
-import knnDPC
+import DPC
 import numpy as np
 from sklearn import metrics
-from sklearn.decomposition import PCA
-import tool.tool
-import tool.PCA
+#from sklearn.decomposition import PCA
+from tool import tool,measure,PCA
+import time
+#import tool.PCA
 
 """
 def pca(data_mat, top_n_feature = 999) :
@@ -36,21 +37,33 @@ def pca(data_mat, top_n_feature = 999) :
 
 if __name__ == '__main__':
     print("hello")
-    data = np.loadtxt('dataset/COIL20_32.txt')
+    # data = np.loadtxt('dataset/COIL20_32.txt')   # K = 20 u = 1
+    #dataset = 'dataset/mnist.txt'
+    dataset = 'dataset/USPS.txt'
+
+
+    print("KROD_PK_DPC    dataset =",dataset)
+    data = np.loadtxt(dataset)
     fea = data[:, :-1]
     labels = data[:,-1]
-    fea = tool.tool.data_Normalized(fea)
+    fea = tool.data_Normalized(fea)
 
-    #fea,b,c = tool.PCA.pca(fea, 150)
-    pca = PCA(n_components=150)
-    fea = pca.fit_transform(fea)
+    fea,b,c = PCA.pca(fea, 150)
+    #pca = PCA(n_components=150)
+    #fea = pca.fit_transform(fea)
 
     u = 1
     K = 20
     groupNumber = len(np.unique(labels))
 
-    cl = knnDPC.knnDPC1(fea, groupNumber, K, u)
+    start = time.time()
+    cl = DPC.knnDPC1(fea, groupNumber, K, u)
+    end = time.time()
+    print("time =", end - start)
 
-    NMI = metrics.adjusted_mutual_info_score(cl, labels)
-    print(NMI)
+    nmi = measure.NMI(labels, cl)
+    print("nmi =",nmi)
+    acc = measure.ACC(labels, cl)
+    print("acc =",acc)
+
     print("world")

@@ -1,13 +1,14 @@
 # -*- coding:utf-8 -*-
 
-import tool.tool as tool
 import numpy as np
-from sklearn import metrics
+from tool import tool,measure
+import time
 
 if __name__ == '__main__':
-    print("hello")
+    print("hello KROD PIC")
     """ load data """
-    data = np.loadtxt('dataset/COIL20_32.txt')
+    # data = np.loadtxt('dataset/COIL20_32.txt')
+    data = np.loadtxt('dataset/mnist.txt')  # K = 25 v = 10 z =0.01
     fea = data[:, :-1]
     labels = data[:, -1]
     fea = tool.data_Normalized(fea)
@@ -16,8 +17,8 @@ if __name__ == '__main__':
     dist = tool.rank_dis_c(fea, u)
     dist = dist - np.diag(np.diag(dist))
 
-    K = 5
-    v = 1
+    K = 25
+    v = 10
     z = 0.01
     groupNumber = len(np.unique(labels))
     ND = dist.shape[0]
@@ -32,10 +33,17 @@ if __name__ == '__main__':
 
     initialCluster = tool.gacNNMerge(dist, NNIndex)
     numClusters = len(initialCluster)
-    cl = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
 
-    NMI = metrics.adjusted_mutual_info_score(cl, labels)
-    print(NMI)
+    start = time.time()
+    cl = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
+    end = time.time()
+    print("time =",end - start)
+
+    nmi = measure.NMI(labels, cl)
+    print("nmi =",nmi)
+    acc = measure.ACC(labels, cl)
+    print("acc =",acc)
+
     print("world")
 
 
