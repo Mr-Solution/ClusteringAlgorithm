@@ -9,6 +9,7 @@ from tool import tool
 ROD的权重矩阵应该是不对称的
 """
 def w_matrix(data, distance, indices, Ks, a=1):
+
     n = len(data)
     weight_matrix = np.zeros([n, n])
     sigma2 = (a / n / Ks) * np.linalg.norm(distance)**2
@@ -35,10 +36,10 @@ def w_matrix(data, distance, indices, Ks, a=1):
 
 """ 最近邻图 """
 def k0graph(X,distance,indices, a=1):
+
     W, sigma2 = w_matrix(X, distance, indices, 1, a)
     #W, sigma2 = tool.gacBuildDigraph(distance, 1, 1)
     Vc = []
-    n = len(W)
     x,y = np.where(W>0)
 
     for i in range(len(x)):
@@ -63,10 +64,14 @@ def k0graph(X,distance,indices, a=1):
 
     return Vc
 
-
+"""
+Vc : 初始化的簇，二维list
+W ： 权重矩阵
+"""
 def getAffinityMaxtrix(Vc,W):
 
     nc = len(Vc)
+    # nc 是初始化的簇的个数，nc * nc 说明这个矩阵记录的是是簇与簇之间的关系 affinity measure between two clusters
     affinity = np.zeros([nc,nc])
 
     for i in range(nc):
@@ -80,11 +85,10 @@ def getAffinityMaxtrix(Vc,W):
             ones_i = np.ones((Ci,1))
             ones_j = np.ones((Cj,1))
             affinity[i][j] = (1/Ci**2)*np.transpose(ones_i).dot(W_ij).dot(W_ji).dot(ones_i) + (1/Cj**2)*np.transpose(ones_j).dot(W_ji).dot(W_ij).dot(ones_j)
-            affinity[j][i] = affinity[i][j]
+            affinity[j][i] = affinity[i][j]    # affinity 是一个对称的矩阵
     return affinity
 
 def getAffinityBtwCluster(C1, C2, W):
-
 
     ij = np.ix_(C1, C2)
     ji = np.ix_(C2, C1)
@@ -95,11 +99,11 @@ def getAffinityBtwCluster(C1, C2, W):
     ones_i = np.ones((Ci, 1))
     ones_j = np.ones((Cj, 1))
     affinity = (1/Ci**2)*np.transpose(ones_i).dot(W_ij).dot(W_ji).dot(ones_i) + (1/Cj**2)*np.transpose(ones_j).dot(W_ji).dot(W_ij).dot(ones_j)
-    #print(affinity)
+
     return affinity[0,0]
 
 """ 
-Vc : 最邻近点邻接图
+Vc : 二维列表，初始化的簇
 Kc : K近邻
 W : 权重矩阵
 """
@@ -120,16 +124,19 @@ def getNeighbor(Vc, Kc, W):
 
 # Ks : the number of neighbors for KNN graph
 def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
+
     print("data length : ", len(data))
     indices = np.argsort(distance, axis=1)[:, 1:Ks + 1]
     distance = np.sort(distance, axis=1)[:, 1:Ks+1]
 
-    cluster = k0graph(data, distance, indices, a)    # 初始化，把所有的数据点分为 len(cluster) 个簇
+    cluster = k0graph(data, distance, indices, a)    # 初始化，把所有的数据点分为 len(cluster) 个簇，cluster是一个二维列表
     length = 0
     for i in range(len(cluster)):
         length += len(cluster[i])
 
-    print("data before clustering : ", length)
+    print("data before clustering : ", length)    # length应该等于data的数量
+
+    # 生成权重矩阵W，每个点的 Ks 邻居之间是有权值的, 即 W[i] 行有 Ks 个不为0 的数
     W,sigma2 = w_matrix(data, distance, indices, Ks, a)
     #W, sigma2 = tool.gacBuildDigraph(distance, Ks, 1)
 
