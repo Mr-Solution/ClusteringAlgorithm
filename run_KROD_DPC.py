@@ -7,12 +7,13 @@ import time
 
 if __name__ == '__main__':
     print("hello KROD DPC")
-    #data = np.loadtxt('dataset/COIL20_32.txt')
-    #data = np.loadtxt('dataset/mnist.txt')
-    # data = np.loadtxt('dataset/mnist.txt')
-    # data = np.loadtxt('dataset/USPS.txt')   # p = 0.8 u = 1
-    # data = np.loadtxt('dataset/Isolet.txt')   # p = 0.52 u = 1
-    dataset = 'dataset/lung.txt'
+    #dataset = 'dataset/COIL20_32.txt'
+    #dataset = 'dataset/mnist.txt'
+    #dataset = 'dataset/lung.txt'
+    #dataset = 'dataset/USPS.txt'
+    #dataset = 'dataset/Isolet.txt'
+    dataset = 'dataset/TOX.txt'
+    #dataset = 'dataset/Jaffe.txt'
 
     print("KROD_DPC    dataset =",dataset)
     data = np.loadtxt(dataset)
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     labels = data[:,-1]
     fea = tool.data_Normalized(fea)
 
-    u = 0.1
+    u = 10
     p = 2
     groupNumber = len(np.unique(labels))
 

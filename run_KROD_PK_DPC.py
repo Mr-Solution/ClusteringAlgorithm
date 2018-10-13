@@ -3,8 +3,8 @@
 import DPC
 import numpy as np
 from sklearn import metrics
-#from sklearn.decomposition import PCA
-from tool import tool,measure,PCA
+from sklearn.decomposition import PCA
+from tool import tool,measure
 import time
 #import tool.PCA
 
@@ -37,22 +37,27 @@ def pca(data_mat, top_n_feature = 999) :
 
 if __name__ == '__main__':
     print("hello")
-    # data = np.loadtxt('dataset/COIL20_32.txt')   # K = 20 u = 1
+    #dataset = 'dataset/COIL20_32.txt'
     #dataset = 'dataset/mnist.txt'
-    dataset = 'dataset/USPS.txt'
-
+    #dataset = 'dataset/lung.txt'
+    #dataset = 'dataset/USPS.txt'
+    #dataset = 'dataset/Isolet.txt'
+    dataset = 'dataset/TOX.txt'
+    #dataset = 'dataset/Jaffe.txt'
 
     print("KROD_PK_DPC    dataset =",dataset)
     data = np.loadtxt(dataset)
+    print("data.shape =",data.shape)
     fea = data[:, :-1]
     labels = data[:,-1]
     fea = tool.data_Normalized(fea)
 
-    fea,b,c = PCA.pca(fea, 150)
-    #pca = PCA(n_components=150)
-    #fea = pca.fit_transform(fea)
+    #fea,b,c = PCA.pca(fea, 150)
+    pca = PCA(n_components=150)
+    fea = pca.fit_transform(fea)
+    print("fea.shape =",fea.shape)
 
-    u = 1
+    u = 8
     K = 20
     groupNumber = len(np.unique(labels))
 

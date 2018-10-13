@@ -14,6 +14,10 @@ def ACC(groundTruth, predValue):
     :param predValue:预测值 np.ndarray
     :return:ACC:正确率
     """
+    if len(np.unique(groundTruth)) != len(np.unique(predValue)):
+        print("ERROR! Number of labels_pred should be equal with the number of labels.")
+        return -1
+
     if len(groundTruth.shape) != 1:
         groundTruth = groundTruth.reshape(groundTruth.shape[0])
     if len(predValue.shape) != 1:

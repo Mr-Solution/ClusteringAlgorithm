@@ -5,10 +5,19 @@ from tool import tool,measure
 import time
 
 if __name__ == '__main__':
-    print("hello KROD PIC")
+    print("hello")
     """ load data """
-    # data = np.loadtxt('dataset/COIL20_32.txt')
-    data = np.loadtxt('dataset/mnist.txt')  # K = 25 v = 10 z =0.01
+    #dataset = 'dataset/COIL20_32.txt'
+    #dataset = 'dataset/mnist.txt'
+    #dataset = 'dataset/lung.txt'
+    #dataset = 'dataset/USPS.txt'
+    #dataset = 'dataset/Isolet.txt'
+    dataset = 'dataset/TOX.txt'
+    #dataset = 'dataset/Jaffe.txt'
+
+    data = np.loadtxt(dataset)  # K = 25 v = 10 z =0.01
+    print("KROD PIC    dataset =", dataset)
+    print("data.shape =",data.shape)
     fea = data[:, :-1]
     labels = data[:, -1]
     fea = tool.data_Normalized(fea)
@@ -17,7 +26,7 @@ if __name__ == '__main__':
     dist = tool.rank_dis_c(fea, u)
     dist = dist - np.diag(np.diag(dist))
 
-    K = 25
+    K = 5
     v = 10
     z = 0.01
     groupNumber = len(np.unique(labels))

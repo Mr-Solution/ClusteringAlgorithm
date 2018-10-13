@@ -10,11 +10,13 @@ import time
 if __name__ == '__main__':
     print("hello")
     #dataset = 'dataset/Isolet.txt'
-    dataset = 'dataset/COIL20_32.txt'
+    #dataset = 'dataset/COIL20_32.txt'
+    dataset = 'dataset/lung.txt'
 
     print("GDL    dataset =", dataset)
     data = np.loadtxt(dataset)
     fea = data[:, :-1]
+    print("data.shape =",fea.shape)
     labels = data[:,-1]
     fea = tool.data_Normalized(fea)
 
@@ -25,12 +27,12 @@ if __name__ == '__main__':
     #dist = dist - np.diag(np.diag(dist))
 
     groupNumber = len(np.unique(labels))
-    K = 20    # the number of nearest neighbors for KNN graph
-    v = 1
+    K = 18    # the number of nearest neighbors for KNN graph
+    a = 10
     # cl = AGDL.AGDL(dist, groupNumber, K, v)
 
     start = time.time()
-    cluster = AGDL.AGDL(fea, dist, groupNumber, K, 10)
+    cluster = AGDL.AGDL(fea, dist, groupNumber, K, 5, a)
     labels_pred = np.zeros(len(labels), dtype='i')
     for i in range(len(cluster)):
         for j in range(len(cluster[i])):

@@ -23,6 +23,8 @@ def data_Normalized(data):
     for i in range(n):
         amax = np.max(data[:, i])
         amin = np.min(data[:, i])
+        if amax - amin == 0:    # to avoid division by zero
+            continue
         for j in range(m):
             data[j, i] = (data[j, i] - amin) / (amax - amin)
 
@@ -62,7 +64,7 @@ def gacBuildDigraph(distance_matrix, K, a):
     NNIndex = np.argsort(distance_matrix)
     NNIndex = NNIndex[:, :K + 1]
     # estimate derivation
-    sig2 = np.mean(np.mean(sortedDist[:, 1:max(K + 1, 4)], 0))
+    sig2 = np.mean(np.mean(sortedDist[:, 1:max(K + 1, 4)], 0))*a
     tmpNNdist = np.min(sortedDist[:, 1:], axis=1)
 
     while np.any(np.exp(-tmpNNdist / sig2) < 1e-5):

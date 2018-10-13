@@ -1,7 +1,31 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from scipy.misc import *
-from tool import tool
+#from tool import tool
+from scipy.sparse import coo_matrix
+
+def gacBuildDigraph(distance_matrix, K, a):
+    # NN indices
+    N = distance_matrix.shape[0]
+    sortedDist = np.sort(distance_matrix)
+    NNIndex = np.argsort(distance_matrix)
+    NNIndex = NNIndex[:, :K + 1]
+    # estimate derivation
+    sig2 = np.mean(np.mean(sortedDist[:, 1:max(K + 1, 4)], 0))*a
+    tmpNNdist = np.min(sortedDist[:, 1:], axis=1)
+
+    while np.any(np.exp(-tmpNNdist / sig2) < 1e-5):
+        sig2 = 2 * sig2
+
+    ND = sortedDist[:, 1:K+1]
+    NI = NNIndex[:, 1:K+1]
+    XI = np.tile(np.arange(N).reshape(N, -1), (1, K))
+    graphW = coo_matrix(
+        (np.exp(-ND.reshape(-1, order='F') * (1 / sig2)), (XI.reshape(-1, order='F'), NI.reshape(-1, order='F'))),
+        shape=(N, N)).todense()
+    graphW = graphW - np.diag(np.diag(graphW))
+
+    return graphW, NNIndex
 
 """ 
 生成权重矩阵 
@@ -35,10 +59,10 @@ def w_matrix(data, distance, indices, Ks, a=1):
     return weight_matrix, sigma2
 
 """ 最近邻图 """
-def k0graph(X,distance,indices, a=1):
+def k0graph(distance, a=1):
 
-    W, sigma2 = w_matrix(X, distance, indices, 1, a)
-    #W, sigma2 = tool.gacBuildDigraph(distance, 1, 1)
+    #W, sigma2 = w_matrix(data, distance, indices, 1, a)
+    W, sigma2 = gacBuildDigraph(distance, 1, a)
     Vc = []
     x,y = np.where(W>0)
 
@@ -127,9 +151,10 @@ def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
 
     print("data length : ", len(data))
     indices = np.argsort(distance, axis=1)[:, 1:Ks + 1]
-    distance = np.sort(distance, axis=1)[:, 1:Ks+1]
+    #distance = np.sort(distance, axis=1)[:, 1:Ks+1]
+    #sorted_dist = np.sort(distance, axis=1)[:, 1:Ks+1]
 
-    cluster = k0graph(data, distance, indices, a)    # 初始化，把所有的数据点分为 len(cluster) 个簇，cluster是一个二维列表
+    cluster = k0graph(distance, a)    # 初始化，把所有的数据点分为 len(cluster) 个簇，cluster是一个二维列表
     length = 0
     for i in range(len(cluster)):
         length += len(cluster[i])
@@ -137,8 +162,8 @@ def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
     print("data before clustering : ", length)    # length应该等于data的数量
 
     # 生成权重矩阵W，每个点的 Ks 邻居之间是有权值的, 即 W[i] 行有 Ks 个不为0 的数
-    W,sigma2 = w_matrix(data, distance, indices, Ks, a)
-    #W, sigma2 = tool.gacBuildDigraph(distance, Ks, 1)
+    #W,sigma2 = w_matrix(data, distance, indices, Ks, a)
+    W, sigma2 = gacBuildDigraph(distance, Ks, a)
 
     neighborSet, affinitySet = getNeighbor(cluster, Kc, W)
     currentClusterNum = len(cluster)
