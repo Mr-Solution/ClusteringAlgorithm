@@ -1,11 +1,12 @@
 # -*- coding:utf-8 -*-
 
-from tool import tool,measure
+from tool import tool,measure,loadData
 import numpy as np
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 if __name__ == '__main__':
+
     print("hello")
     #dataset = 'dataset/COIL20_32.txt'
     #dataset = 'dataset/Isolet.txt'

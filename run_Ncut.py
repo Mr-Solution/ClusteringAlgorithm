@@ -1,17 +1,27 @@
 # -*- coding:utf-8 -*-
 
-import tool.tool as tool
+from tool import tool,measure
 import numpy as np
-from sklearn import metrics
-from sklearn.cluster import KMeans
 from sklearn.cluster import SpectralClustering
+import time
 
 if __name__ == '__main__':
-    print("hello")
-    data = np.loadtxt('dataset/COIL20_32.txt')
+
+    dataset = 'dataset/COIL20_32.txt'
+    #dataset = 'dataset/mnist.txt'
+    #dataset = 'dataset/lung.txt'
+    #dataset = 'dataset/USPS.txt'
+    #dataset = 'dataset/Isolet.txt'
+    #dataset = 'dataset/TOX.txt'
+    #dataset = 'dataset/Jaffe.txt'
+
+    data = np.loadtxt(dataset)
     fea = data[:, :-1]
     labels = data[:, -1]
     fea = tool.data_Normalized(fea)
+    print("Ncuts------dataset :",dataset)
+    print("data.shape :", fea.shape)
+
     groupNumber = len(np.unique(labels))
 
     print("------ clustering ------")
@@ -19,11 +29,13 @@ if __name__ == '__main__':
     # kmeans = KMeans(init='k-means++', n_clusters=groupNumber, n_init=20)
     # kmeans.fit(fea)
     # cl = kmeans.labels_
-
-    clustering = SpectralClustering(n_clusters=groupNumber
-                                    ).fit(fea)
+    start = time.time()
+    clustering = SpectralClustering(n_clusters=groupNumber).fit(fea)
     cl = clustering.labels_
+    end = time.time()
+    print("time =", end-start)
 
-    NMI = metrics.adjusted_mutual_info_score(cl, labels)
-    print(NMI)
-    print('world')
+    NMI = measure.NMI(labels, cl)
+    print("NMI =",  NMI)
+    ACC = measure.ACC(labels, cl)
+    print("ACC =", ACC)

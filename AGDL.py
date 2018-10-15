@@ -1,8 +1,6 @@
-import numpy as np
-from sklearn.neighbors import NearestNeighbors
 from scipy.misc import *
-#from tool import tool
 from scipy.sparse import coo_matrix
+
 
 def gacBuildDigraph(distance_matrix, K, a):
     # NN indices
@@ -27,11 +25,8 @@ def gacBuildDigraph(distance_matrix, K, a):
 
     return graphW, NNIndex
 
-""" 
-生成权重矩阵 
-欧氏距离的权重矩阵应该是对称的
-ROD的权重矩阵应该是不对称的
-"""
+
+# 生成权重矩阵 欧氏距离的权重矩阵应该是对称的 ROD的权重矩阵应该是不对称的
 def w_matrix(data, distance, indices, Ks, a=1):
 
     n = len(data)
@@ -45,23 +40,23 @@ def w_matrix(data, distance, indices, Ks, a=1):
     #     sig2 = 10 * sig2
     # sigma2 = sig2
 
-    if Ks==1:
+    if Ks == 1:
         for i in range(n):
-            #for j in range(n):
+            # for j in range(n):
             j=indices[i][0]
-            weight_matrix[i][j] = np.exp(-1 * (np.linalg.norm(data[i]- data[j])** 2) / sigma2)
+            weight_matrix[i][j] = np.exp(-1 * (np.linalg.norm(data[i]- data[j]) ** 2) / sigma2)
     else:
         for i in range(n):
-            #for j in range(n):
+            # for j in range(n):
             for j in indices[i]:
-                weight_matrix[i][j] = np.exp(-1 * (np.linalg.norm(data[i]- data[j])** 2) / sigma2)
+                weight_matrix[i][j] = np.exp(-1 * (np.linalg.norm(data[i]- data[j]) ** 2) / sigma2)
 
     return weight_matrix, sigma2
 
-""" 最近邻图 """
-def k0graph(distance, a=1):
 
-    #W, sigma2 = w_matrix(data, distance, indices, 1, a)
+# 最近邻图
+def k0graph(distance, a=1):
+    # W, sigma2 = w_matrix(data, distance, indices, 1, a)
     W, sigma2 = gacBuildDigraph(distance, 1, a)
     Vc = []
     x,y = np.where(W>0)
@@ -78,7 +73,7 @@ def k0graph(distance, a=1):
             Vc.append([x[i],y[i]])
         elif x_index >= 0 and y_index < 0:
             Vc[x_index].append(y[i])
-        elif x_index < 0 and y_index >=0:
+        elif x_index < 0 and y_index >= 0:
             Vc[y_index].append(x[i])
         elif x_index == y_index:
             continue
@@ -88,12 +83,12 @@ def k0graph(distance, a=1):
 
     return Vc
 
-"""
-Vc : 初始化的簇，二维list
-W ： 权重矩阵
-"""
-def getAffinityMaxtrix(Vc,W):
 
+def getAffinityMaxtrix(Vc,W):
+    """
+    Vc : 初始化的簇，二维list
+    W ： 权重矩阵
+    """
     nc = len(Vc)
     # nc 是初始化的簇的个数，nc * nc 说明这个矩阵记录的是是簇与簇之间的关系 affinity measure between two clusters
     affinity = np.zeros([nc,nc])
@@ -112,6 +107,7 @@ def getAffinityMaxtrix(Vc,W):
             affinity[j][i] = affinity[i][j]    # affinity 是一个对称的矩阵
     return affinity
 
+
 def getAffinityBtwCluster(C1, C2, W):
 
     ij = np.ix_(C1, C2)
@@ -126,13 +122,13 @@ def getAffinityBtwCluster(C1, C2, W):
 
     return affinity[0,0]
 
-""" 
-Vc : 二维列表，初始化的簇
-Kc : K近邻
-W : 权重矩阵
-"""
-def getNeighbor(Vc, Kc, W):
 
+def getNeighbor(Vc, Kc, W):
+    """
+    Vc : 二维列表，初始化的簇
+    Kc : K近邻
+    W : 权重矩阵
+    """
     Ns, As = [], []
     A = getAffinityMaxtrix(Vc, W)
 
@@ -145,6 +141,7 @@ def getNeighbor(Vc, Kc, W):
             Ns.append(A[i].argsort()[-1*n:].tolist())
 
     return Ns,As
+
 
 # Ks : the number of neighbors for KNN graph
 def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
@@ -205,14 +202,14 @@ def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
             del neighborSet[max_index2][p]
 
         for i in range(len(neighborSet)):
-            if i==max_index1 or i==max_index2:
+            if i == max_index1 or i == max_index2:
                 continue
 
             if max_index1 in neighborSet[i]:
                 aff_update = getAffinityBtwCluster(cluster[i], cluster[max_index1], W)
 
                 p = neighborSet[i].index(max_index1)
-                affinitySet[i][p] = aff_update # fix the affinity values
+                affinitySet[i][p] = aff_update  # fix the affinity values
 
             if max_index2 in neighborSet[i]:
                 p = neighborSet[i].index(max_index2)
@@ -263,5 +260,3 @@ def AGDL(data, distance, targetClusterNum, Ks, Kc, a=1):
     print("Data number, Cluster number : ", length, len(reduced_cluster))
 
     return reduced_cluster
-
-

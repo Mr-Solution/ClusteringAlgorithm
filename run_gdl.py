@@ -8,7 +8,6 @@ import AGDL
 import time
 
 if __name__ == '__main__':
-    print("hello")
     #dataset = 'dataset/Isolet.txt'
     #dataset = 'dataset/COIL20_32.txt'
     dataset = 'dataset/lung.txt'
@@ -24,7 +23,6 @@ if __name__ == '__main__':
     # dist = dist - np.diag(np.diag(dist))
 
     dist = cdist(fea, fea)
-    #dist = dist - np.diag(np.diag(dist))
 
     groupNumber = len(np.unique(labels))
     K = 18    # the number of nearest neighbors for KNN graph
@@ -44,4 +42,3 @@ if __name__ == '__main__':
     print("NMI =", NMI)
     ACC = measure.ACC(labels, labels_pred)
     print("ACC =", ACC)
-    print('world')

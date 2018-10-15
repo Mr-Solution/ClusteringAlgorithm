@@ -24,6 +24,8 @@ def data_Normalized(data):
         amax = np.max(data[:, i])
         amin = np.min(data[:, i])
         if amax - amin == 0:    # to avoid division by zero
+            # continue
+            data[:, i] = 0
             continue
         for j in range(m):
             data[j, i] = (data[j, i] - amin) / (amax - amin)

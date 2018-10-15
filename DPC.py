@@ -4,16 +4,17 @@ from tool import tool
 import numpy as np
 import copy
 from scipy.spatial import distance
-#from scipy.spatial.distance import cdist
+# from scipy.spatial.distance import cdist
 # from scipy.sparse import coo_matrix
 
-"""
-ROD DPC
-fea : data
-k : the expected number of groups
-percent, sigma DPC算法参数
-"""
+
+# ROD DPC
 def DPC1(fea, k, percent, sigma):
+    """
+    fea : data
+    k : the expected number of groups
+    percent, sigma DPC算法参数
+    """
     NUC = k;
 
     dist = tool.rank_dis_c(fea, sigma)
@@ -51,6 +52,7 @@ def DPC1(fea, k, percent, sigma):
     rho = np.sum(tmp, axis=0) + np.sum(tmp, axis=1)
 
     maxd = np.max(dist)
+    print("maxd =", maxd)
 
     ordrho = np.argsort(-rho)
     delta = np.zeros(sample_num)
@@ -83,45 +85,45 @@ def DPC1(fea, k, percent, sigma):
             cl[ordrho[i]] = cl[int(nneigh[ordrho[i]])]
 
     cl = cl - 1
-    halo = copy.deepcopy(cl)
+    # halo = copy.deepcopy(cl)
+    #
+    # if NCLUST > 1:
+    #     bord_rho = np.zeros(NCLUST)
+    #     """
+    #     for i in range(sample_num-1):
+    #         for j in range(i+1, sample_num):
+    #             if cl[i] != cl[j] and dist[i,j] <= dc:
+    #                 rho_aver = (rho[i] + rho[j])/2
+    #                 if rho_aver > bord_rho[int(cl[i])]:
+    #                     bord_rho[int(cl[i])] = rho_aver
+    #                 if rho_aver > bord_rho[int(cl[j])]:
+    #                     bord_rho[int(cl[j])] = rho_aver
+    #     """
+    #     xindices,yindices = np.where(dist <= dc)
+    #     for x, y in zip(xindices, yindices):
+    #         # 只考虑上三角
+    #         if y > x and cl[x] != cl[y]:
+    #             rho_aver = (rho[x] + rho[y])/2
+    #             if rho_aver > bord_rho[int(cl[x])]:
+    #                 bord_rho[int(cl[x])] = rho_aver
+    #             if rho_aver > bord_rho[int(cl[y])]:
+    #                 bord_rho[int(cl[y])] = rho_aver
+    #
+    #
+    #     # 不太好办，但是应该可以加速
+    #     for i in range(sample_num):
+    #         if rho[i] < bord_rho[int(cl[i])]:
+    #             halo[i] = 0
 
-    if NCLUST > 1:
-        bord_rho = np.zeros(NCLUST)
-        """
-        for i in range(sample_num-1):
-            for j in range(i+1, sample_num):
-                if cl[i] != cl[j] and dist[i,j] <= dc:
-                    rho_aver = (rho[i] + rho[j])/2
-                    if rho_aver > bord_rho[int(cl[i])]:
-                        bord_rho[int(cl[i])] = rho_aver
-                    if rho_aver > bord_rho[int(cl[j])]:
-                        bord_rho[int(cl[j])] = rho_aver
-        """
-        xindices,yindices = np.where(dist <= dc)
-        for x,y in zip(xindices,yindices) :
-            # 只考虑上三角
-            if y>x and cl[x] != cl[y]:
-                rho_aver = (rho[x] + rho[y])/2
-                if rho_aver > bord_rho[int(cl[x])]:
-                    bord_rho[int(cl[x])] = rho_aver
-                if rho_aver > bord_rho[int(cl[y])]:
-                    bord_rho[int(cl[y])] = rho_aver
-
-
-        # 不太好办，但是应该可以加速
-        for i in range(sample_num):
-            if rho[i] < bord_rho[int(cl[i])]:
-                halo[i] = 0
-
-    for i in range(NCLUST):
-        nc = 0
-        nh = 0
-        for j in range(sample_num):
-            if cl[j] == i:
-                nc += 1
-            if halo[j] == i:
-                nh += 1
-    print("nc = %d nh = %d"%(nc,nh))
+    # for i in range(NCLUST):
+    #     nc = 0
+    #     nh = 0
+    #     for j in range(sample_num):
+    #         if cl[j] == i:
+    #             nc += 1
+    #         if halo[j] == i:
+    #             nh += 1
+    # print("nc = %d nh = %d"%(nc,nh))
     return cl
 
 """
