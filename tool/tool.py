@@ -16,6 +16,7 @@ def data_Normalized(data):
     row: samples
     cul: features
     """
+    print('------ Normalizing data ------')
     m, n = data.shape
     b1 = []
     b2 = []

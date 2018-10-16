@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-import tool.tool as tool
+from tool import tool, measure, loadData
 #import nmf_LP
 import numpy as np
 from sklearn import metrics
@@ -8,16 +8,29 @@ from sklearn.decomposition import NMF
 from sklearn.cluster import KMeans
 
 if __name__ == '__main__':
-    print("hello")
-    data = np.loadtxt('dataset/COIL20_32.txt')
-    fea = data[:, :-1]
-    labels = data[:, -1]
-    fea = tool.data_Normalized(fea)
+    print("NMF_LP")
 
-    p = 2
+    # dataset = 'dataset/COIL20_32.txt'
+    # dataset = 'dataset/Isolet.txt'
+    # dataset = 'dataset/Jaffe.txt'
+    # dataset = 'dataset/lung.txt'
+    # dataset = 'dataset/mnist.txt'
+    # dataset = 'dataset/TOX.txt'
+    # dataset = 'dataset/USPS.txt'
+
+    # data = np.loadtxt(dataset)
+    # fea = data[:, :-1]
+    # labels = data[:, -1]
+
+    fea, labels = loadData.load_coil100()
+
+    # fea = tool.data_Normalized(fea)
+    tool.data_Normalized(fea)
+
+    # p = 2
     groupNumber = len(np.unique(labels))
 
-    print("------ clustering ------")
+    print("------ Clustering ------")
 
     # cl = nmf_LP.predict_nmf_lp(fea, groupNumber)
 
@@ -33,6 +46,7 @@ if __name__ == '__main__':
     kmeans.fit(W)
     cl = kmeans.labels_
 
-    NMI = metrics.adjusted_mutual_info_score(cl, labels)
-    print(NMI)
-    print('world')
+    NMI = measure.NMI(labels, cl)
+    print("NMI =", NMI)
+    ACC = measure.ACC(labels, cl)
+    print("ACC =", ACC)
