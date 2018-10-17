@@ -36,9 +36,8 @@ def DPC1(fea, k, percent, sigma):
     dc = sda[position - 1]
     """
     print("dc =",dc)
-    #rho = np.zeros(sample_num)
 
-    """
+    rho = np.zeros(sample_num)
     for i in range(sample_num-1):
         for j in range(i+1, sample_num):
             # rho[i] = rho[i] + np.exp(-pow(dist[i,j]/dc, 2))
@@ -46,10 +45,10 @@ def DPC1(fea, k, percent, sigma):
             # 涉及浮点数运算，(a/b)*(a/b)和(a/b)^2的结果是不同的，中间步骤保留的小数位数不同。
             rho[i] = rho[i] + np.exp(-(dist[i,j]/dc)*(dist[i,j]/dc))
             rho[j] = rho[j] + np.exp(-(dist[i,j]/dc)*(dist[i,j]/dc))
-    """
+
     """用下面两行替换"""
-    tmp = np.triu(np.exp(-(dist/dc)*(dist/dc)), 1)
-    rho = np.sum(tmp, axis=0) + np.sum(tmp, axis=1)
+    # tmp = np.triu(np.exp(-(dist/dc)*(dist/dc)), 1)
+    # rho = np.sum(tmp, axis=0) + np.sum(tmp, axis=1)
 
     maxd = np.max(dist)
     print("maxd =", maxd)
