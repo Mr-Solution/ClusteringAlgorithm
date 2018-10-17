@@ -24,7 +24,6 @@ print("n_sample: %d, n_feature:%d"%(n_samples, n_features))
 n_neighbors = 30
 
 
-#----------------------------------------------------------------------
 # Scale and visualize the embedding vectors
 def plot_embedding(X, title=None):
     x_min, x_max = np.min(X, 0), np.max(X, 0)

@@ -251,27 +251,28 @@ def gacZetaCondEntropy(IminuszW, cluster_i, cluster_j):
     return L_ij
 
 
-"""
-construct similarity matrix with probabilistic k-nearest neighbors
-It is a parameter free, distance consistent similarity
-arguments:
-X: each row is a data point
-k: number of neighbors
-issymmetric: set W = (W+W')/2 if issymmetric=1
-return:
-W = similarity matrix
-"""
 def constructW_PKN(X, k=5, issymmetric=1):
+    """
+    construct similarity matrix with probabilistic k-nearest neighbors
+    It is a parameter free, distance consistent similarity
+    arguments:
+    X: each row is a data point
+    k: number of neighbors
+    issymmetric: set W = (W+W')/2 if issymmetric=1
+    return:
+    W = similarity matrix
+    """
+    print("------ Constructing similarity matrix ------")
     n = X.shape[0]
     dim = X.shape[1]
     D = distance.cdist(X, X)
     idx = np.argsort(D, axis=1)
 
-    W = np.zeros((n,n))
+    W = np.zeros((n, n))
     for i in range(n):
         id = idx[i, 1:k+2]
         di = D[i, id]
-        W[i,id] = (di[k]-di)/(k*di[k]-np.sum(di[:k])+np.spacing(1))
+        W[i, id] = (di[k]-di)/(k*di[k]-np.sum(di[:k])+np.spacing(1))
 
     if issymmetric == 1:
         W = (W+W.T)/2

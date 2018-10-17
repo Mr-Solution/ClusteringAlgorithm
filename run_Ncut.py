@@ -7,13 +7,13 @@ import time
 
 if __name__ == '__main__':
 
-    dataset = 'dataset/COIL20_32.txt'
-    #dataset = 'dataset/mnist.txt'
-    #dataset = 'dataset/lung.txt'
-    #dataset = 'dataset/USPS.txt'
-    #dataset = 'dataset/Isolet.txt'
-    #dataset = 'dataset/TOX.txt'
-    #dataset = 'dataset/Jaffe.txt'
+    # dataset = 'dataset/COIL20_32.txt'
+    dataset = 'dataset/mnist.txt'
+    # dataset = 'dataset/lung.txt'
+    # dataset = 'dataset/USPS.txt'
+    # dataset = 'dataset/Isolet.txt'
+    # dataset = 'dataset/TOX.txt'
+    # dataset = 'dataset/Jaffe.txt'
 
     data = np.loadtxt(dataset)
     fea = data[:, :-1]
