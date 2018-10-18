@@ -3,28 +3,45 @@
 import knnDPC
 import numpy as np
 from sklearn.decomposition import PCA
-from tool import tool,measure
+from sklearn.preprocessing import MinMaxScaler
+from tool import (tool, measure)
 # import tool.PCA
 
 if __name__ == '__main__':
-    print("hello PK DPC")
-    data = np.loadtxt('dataset/COIL20_32.txt')
-    fea = data[:, :-1]
-    labels = data[:,-1]
-    fea = tool.data_Normalized(fea)
+    print("PK DPC")
+    # dataset = 'dataset/COIL20_32.txt'    # K=10
+    # dataset = 'dataset/Isolet.txt'    # K=5
+    # dataset = 'dataset/Jaffe.txt'    # K=5
+    # dataset = 'dataset/lung.txt'    # K=25
+    dataset = 'dataset/mnist.txt'    # K=15
+    # dataset = 'dataset/TOX.txt'    # K=10
+    # dataset = 'dataset/USPS.txt'    # K=25
 
+    data = np.loadtxt(dataset)
+    fea = data[:, :-1]
+    labels = data[:, -1]
+    print("dataset = %s    data.shape = %s" % (dataset, fea.shape))
+
+    print("------ Normalizing data ------")
+    # fea = tool.data_Normalized(fea)
+    Normalizer = MinMaxScaler()
+    Normalizer.fit(fea)
+    fea = Normalizer.transform(fea)
+
+    print("------ PCA decomposition ------")
     # fea,b,c = tool.PCA.pca(fea, 150)
     pca = PCA(n_components=150)
     fea = pca.fit_transform(fea)
+    print("fea.shape =",fea.shape)
 
-    K = 5
+    K = 15
     groupNumber = len(np.unique(labels))
 
+    print("------ Clustering ------")
     cl = knnDPC.knnDPC2(fea, groupNumber, K)
 
+    print("------ Computing performance measure ------")
     nmi = measure.NMI(labels, cl)
-    print("nmi =",nmi)
+    print("nmi =", nmi)
     acc = measure.ACC(labels, cl)  # 计算ACC需要label和labels_pred 在同一个区间[1,20]
-    print("acc =",acc)
-
-    print("world")
+    print("acc =", acc)

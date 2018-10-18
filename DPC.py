@@ -188,46 +188,46 @@ def DPC2(fea, k, percent):
             cl[ordrho[i]] = cl[int(nneigh[ordrho[i]])]
 
     cl = cl - 1
-    halo = copy.deepcopy(cl)
-
-    if NCLUST > 1:
-        bord_rho = np.zeros(NCLUST)
-        """
-        for i in range(ND-1):
-            for j in range(i+1, ND):
-                if cl[i] != cl[j] and dist[i,j] <= dc:
-                    rho_aver = (rho[i] + rho[j])/2
-                    if rho_aver > bord_rho[int(cl[i])]:
-                        bord_rho[int(cl[i])] = rho_aver
-                    if rho_aver > bord_rho[int(cl[j])]:
-                        bord_rho[int(cl[j])] = rho_aver
-        """
-        xindices,yindices = np.where(dist <= dc)
-        for i in range(len(xindices)):
-            x = xindices[i]
-            y = yindices[i]
-            # 只考虑上三角
-            if y>x and cl[x] != cl[y]:
-                rho_aver = (rho[x] + rho[y])/2
-                if rho_aver > bord_rho[int(cl[x])]:
-                    bord_rho[int(cl[x])] = rho_aver
-                if rho_aver > bord_rho[int(cl[y])]:
-                    bord_rho[int(cl[y])] = rho_aver
-
-        # 不太好办，但是应该可以加速
-        for i in range(ND):
-            if rho[i] < bord_rho[int(cl[i])]:
-                halo[i] = 0
-
-    for i in range(NCLUST):
-        nc = 0
-        nh = 0
-        for j in range(ND):
-            if cl[j] == i:
-                nc += 1
-            if halo[j] == i:
-                nh += 1
-    print("nc = %d nh = %d"%(nc,nh))
+    # halo = copy.deepcopy(cl)
+    #
+    # if NCLUST > 1:
+    #     bord_rho = np.zeros(NCLUST)
+    #     """
+    #     for i in range(ND-1):
+    #         for j in range(i+1, ND):
+    #             if cl[i] != cl[j] and dist[i,j] <= dc:
+    #                 rho_aver = (rho[i] + rho[j])/2
+    #                 if rho_aver > bord_rho[int(cl[i])]:
+    #                     bord_rho[int(cl[i])] = rho_aver
+    #                 if rho_aver > bord_rho[int(cl[j])]:
+    #                     bord_rho[int(cl[j])] = rho_aver
+    #     """
+    #     xindices,yindices = np.where(dist <= dc)
+    #     for i in range(len(xindices)):
+    #         x = xindices[i]
+    #         y = yindices[i]
+    #         # 只考虑上三角
+    #         if y>x and cl[x] != cl[y]:
+    #             rho_aver = (rho[x] + rho[y])/2
+    #             if rho_aver > bord_rho[int(cl[x])]:
+    #                 bord_rho[int(cl[x])] = rho_aver
+    #             if rho_aver > bord_rho[int(cl[y])]:
+    #                 bord_rho[int(cl[y])] = rho_aver
+    #
+    #     # 不太好办，但是应该可以加速
+    #     for i in range(ND):
+    #         if rho[i] < bord_rho[int(cl[i])]:
+    #             halo[i] = 0
+    #
+    # for i in range(NCLUST):
+    #     nc = 0
+    #     nh = 0
+    #     for j in range(ND):
+    #         if cl[j] == i:
+    #             nc += 1
+    #         if halo[j] == i:
+    #             nh += 1
+    # print("nc = %d nh = %d"%(nc,nh))
     return cl
 
 def knnDPC1(fea, k, K, sigma2):

@@ -1,24 +1,39 @@
 # -*- coding:utf-8 -*-
 
-import tool.tool as tool
+from tool import (tool, measure, loadData)
 import numpy as np
 from sklearn import metrics
+from sklearn.preprocessing import MinMaxScaler
 from scipy.spatial.distance import cdist
 
 if __name__ == '__main__':
-    print("hello")
+    print("PIC")
     """ load data """
-    data = np.loadtxt('dataset/COIL20_32.txt')
+    # dataset = 'dataset/COIL20_32.txt'    # K=5  v=1
+    # dataset = 'dataset/Isolet.txt'    # K=25  v=10
+    # dataset = 'dataset/Jaffe.txt'    # K=15  v=10
+    # dataset = 'dataset/lung.txt'    # K=15  v=10
+    dataset = 'dataset/mnist.txt'    # K=25  v=1
+    # dataset = 'dataset/TOX.txt'    # K=15  v=10
+    # dataset = 'dataset/USPS.txt'    # K=20  v=1
+
+    data = np.loadtxt(dataset)
     fea = data[:, :-1]
     labels = data[:, -1]
-    fea = tool.data_Normalized(fea)
-    """ clustering """
-    u = 1
-    # dist = tool.rank_dis_c(fea, u)
+    print("dataset = %s    data.shape = %s" % (dataset, fea.shape))
+
+    print("------ Normalizing data ------")
+    # fea = tool.data_Normalized(fea)
+    Normalizer = MinMaxScaler()
+    Normalizer.fit(fea)
+    fea = Normalizer.transform(fea)
+
+    print("------ Clustering ------")
+    # u = 1
     dist = cdist(fea, fea)
     dist = dist - np.diag(np.diag(dist))
 
-    K = 5
+    K = 25
     v = 1
     z = 0.01
     groupNumber = len(np.unique(labels))
@@ -28,6 +43,7 @@ if __name__ == '__main__':
     graphW, NNIndex = tool.gacBuildDigraph(dist, K, v)
     graphW = np.around(graphW, decimals=4)
     # from adjacency matrix to probability transition matrix
+
     def f(x):
         return x/np.sum(x)
     graphW = np.apply_along_axis(f, 1, graphW)
@@ -36,6 +52,8 @@ if __name__ == '__main__':
     numClusters = len(initialCluster)
     cl = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
 
-    NMI = metrics.adjusted_mutual_info_score(cl, labels)
-    print(NMI)
-    print("world")
+    print("------ Computing performance measure ------")
+    NMI = measure.NMI(labels, cl)
+    print("NMI =", NMI)
+    ACC = measure.ACC(labels, cl)
+    print("ACC =", ACC)
