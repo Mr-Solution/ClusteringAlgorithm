@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
-from tool import tool, measure, loadData
+from tool import (measure, loadData)
+from sklearn.preprocessing import MinMaxScaler
 import DPC
 import numpy as np
 import time
@@ -20,7 +21,11 @@ if __name__ == '__main__':
     # data = np.loadtxt(dataset)
     # fea = data[:, :-1]
     # labels = data[:,-1]
-    fea = tool.data_Normalized(fea)
+    # fea = tool.data_Normalized(fea)
+    print("------ Normalizing data ------")
+    Normalizer = MinMaxScaler()
+    Normalizer.fit(fea)
+    fea = Normalizer.transform(fea)
 
     p = 0.5
     u = 10

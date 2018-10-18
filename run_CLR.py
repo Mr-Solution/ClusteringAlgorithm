@@ -16,7 +16,6 @@ if __name__ == '__main__':
     # dataset = 'dataset/TOX.txt'    # K=10
     # dataset = 'dataset/USPS.txt'    # K=20
 
-
     # data = np.loadtxt(dataset)
     # fea = data[:, :-1]
     # labels = data[:,-1]

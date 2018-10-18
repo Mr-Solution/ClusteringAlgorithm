@@ -15,27 +15,29 @@ def data_Normalized(data):
     :return: normalized data
     row: samples
     cul: features
+
+    use sklearn.preprocessing.MinMaxScaler
     """
-    print('------ Normalizing data ------')
-    m, n = data.shape
-    b1 = []
-    b2 = []
-    # 遍历每一个特征
-    for i in range(n):
-        amax = np.max(data[:, i])
-        amin = np.min(data[:, i])
-        if amax - amin == 0:    # to avoid division by zero
-            # continue
-            data[:, i] = 0
-            continue
-        for j in range(m):
-            data[j, i] = (data[j, i] - amin) / (amax - amin)
-
-        b1.append(amin)
-        b2.append(amax - amin)
-
-    data = np.where(np.isnan(data), 0, data)
-    return data  # , b1, b2
+    # print('------ Normalizing data ------')
+    # m, n = data.shape
+    # b1 = []
+    # b2 = []
+    # # 遍历每一个特征
+    # for i in range(n):
+    #     amax = np.max(data[:, i])
+    #     amin = np.min(data[:, i])
+    #     if amax - amin == 0:    # to avoid division by zero
+    #         # continue
+    #         data[:, i] = 0
+    #         continue
+    #     for j in range(m):
+    #         data[j, i] = (data[j, i] - amin) / (amax - amin)
+    #
+    #     b1.append(amin)
+    #     b2.append(amax - amin)
+    #
+    # data = np.where(np.isnan(data), 0, data)
+    # return data  # , b1, b2
 
 
 def rank_dis_c(fea, a=1):
