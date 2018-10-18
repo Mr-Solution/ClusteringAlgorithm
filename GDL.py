@@ -4,12 +4,15 @@ from tool import tool
 import numpy as np
 from scipy.sparse import coo_matrix
 
+
 def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
     print("------ Building graph and forming iniital clusters with l-links ------")
     graphW, NNIndex = gacBuildDigraph_c(dist_set, K, a)
     initialClusters = gacBuildLlinks_cwarpper(dist_set, p, NNIndex)
+    # if usingKcCluster=True    else meixie
     clusteredLabels = gdlMergingKNN_c(graphW, initialClusters, groupNumber)
     return clusteredLabels
+
 
 def gacBuildDigraph_c(dist_matrix, K, a):
     N = dist_matrix.shape[0]
@@ -30,11 +33,11 @@ def gacBuildDigraph_c(dist_matrix, K, a):
     return graphW, NNIndex
 
 
-
 def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex):
-    palceholder,NNIndex = gacMink(dist_matrix, p+1, 2)
+    palceholder, NNIndex = gacMink(dist_matrix, p+1, 2)
     outputClusters = gacOnelink_c(NNIndex)
     return outputClusters
+
 
 def gacOnelink_c(NNIndex):
     Dim = NNIndex.shape[1]
@@ -63,7 +66,15 @@ def gacOnelink_c(NNIndex):
 
     return initialClusters
 
+
+# Cluster merging for Graph Degree Linkage
 def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
+    """
+    :param graphW: asymmetric weighted adjacency matrix
+    :param initialClusters:  a cell array of clustered vertices
+    :param groupNumber: the final number of clusters
+    :return: clusterlabels 1xm array
+    """
     numSample = graphW.shape[0]
     myInf = 1e10
     myBoundInf = 1e8
@@ -89,6 +100,20 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
 
 
 def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
+    """
+    :param affinityTab: matrix
+    :param curGroupNum: int
+    :param KcCluster: matrix
+    :return:
+    """
+    numClusters = affinityTab.shape[0]
+    Kc = KcCluster.shape[0]
+    minIndex1 = 0
+    minIndex2 = 0
+    minElem = 1e10
+    if curGroupNum < 1.2*Kc:
+        
+
     return minIndex1, minIndex2
 
 
@@ -129,6 +154,7 @@ def gdlInitAffinityTable_knn_c(graphW, initClusters, Kc):
 
     return affinityTab, AsymAffTab
 
+
 # 这个函数不对
 def gdlComputeAffinity(pW, cluster_i, cluster_j):
     num_i = len(cluster_i)
@@ -161,6 +187,7 @@ def computeAverageDegreeAffinity(graphW, cluster_i, cluster_j):
             sum += graphW[i,j] + graphW[j,i]
     return sum/(len(cluster_i) * len(cluster_j))
 
+
 def gacFindKcCluster(affinityTab, Kc):
     Kc = np.ceil(1.2*Kc).astype(np.int)
     sortedAff, placeholder = gacMink(affinityTab, Kc, 1)
@@ -176,6 +203,7 @@ def gacMink (X, k, dim=1):
     sortedDist = sortedDist[:, :k]
     NNIndex = NNIndex[:, :k]
     return sortedDist, NNIndex
+
 
 def gacPartial_sort(X, k, dim):
     # nrows, ncols = X.shape

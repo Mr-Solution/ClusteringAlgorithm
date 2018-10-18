@@ -3,7 +3,7 @@
 from tool import (tool, measure, loadData)
 import DPC
 import numpy as np
-from sklearn import metrics
+from sklearn.preprocessing import MinMaxScaler
 
 if __name__ == '__main__':
     print("DPC Algorithm")
@@ -21,7 +21,12 @@ if __name__ == '__main__':
     # fea = data[:, :-1]
     # print("dataset = %s    data.shape = %s" % (dataset, fea.shape))
     # labels = data[:, -1]
+
+    print("------ Normalizing data ------")
     fea = tool.data_Normalized(fea)
+    Normalizer = MinMaxScaler()
+    Normalizer.fit(fea)
+    fea = Normalizer.transform(fea)
 
     p = 2
     groupNumber = len(np.unique(labels))
