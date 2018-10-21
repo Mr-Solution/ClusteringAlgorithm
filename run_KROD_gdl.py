@@ -10,8 +10,9 @@ import time
 
 if __name__ == '__main__':
     print("KROD-GDL")
-    #dataset = 'dataset/Isolet.txt'
-    dataset = 'dataset/lung.txt'
+    dataset = 'dataset/Isolet.txt'
+    # dataset = 'dataset/lung.txt'
+    # dataset = 'dataset/COIL20_32.txt'
 
     data = np.loadtxt(dataset)
     fea = data[:, :-1]
@@ -24,7 +25,8 @@ if __name__ == '__main__':
     Normalizer.fit(fea)
     fea = Normalizer.transform(fea)
 
-    dist = tool.rank_dis_c(fea)
+    u = 1
+    dist = tool.rank_dis_c(fea, u)
     dist = dist - np.diag(np.diag(dist))
     #dist = 100 * dist  # dist的值太小了 求权重的时候容易被归0
 
@@ -32,10 +34,10 @@ if __name__ == '__main__':
     #dist = dist - np.diag(np.diag(dist))
 
     groupNumber = len(np.unique(labels))
-    K = 20    # the number of nearest neighbors for KNN graph
-    v = 1
+    K = 25    # the number of nearest neighbors for KNN graph
+    v = 10
     a = 10
-
+    """
     start = time.time()
     cluster = AGDL.AGDL(fea, dist, groupNumber, K, 5, a)
 
@@ -44,11 +46,11 @@ if __name__ == '__main__':
     for i in range(len(cluster)):
         for j in range(len(cluster[i])):
             labels_pred[cluster[i][j]] = i
+    """
+    labels_pred = GDL.gdl(dist, groupNumber, K, v, True)
 
-    cl = GDL.gdl(dist, groupNumber, K, v, True)
-
-    end = time.time()
-    print("time =",end-start)
+    # end = time.time()
+    # print("time =",end-start)
 
     NMI = measure.NMI(labels, labels_pred)
     print("NMI =", NMI)

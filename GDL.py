@@ -1,14 +1,17 @@
 # -*- coding:utf-8 -*-
-
 from tool import tool
 import numpy as np
 from scipy.sparse import coo_matrix
+import copy
+import gc
 
 
 def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
     print("------ Building graph and forming iniital clusters with l-links ------")
     graphW, NNIndex = gacBuildDigraph_c(dist_set, K, a)
     initialClusters = gacBuildLlinks_cwarpper(dist_set, p, NNIndex)
+    del dist_set, NNIndex
+    gc.collect()
     # if usingKcCluster=True    else meixie
     clusteredLabels = gdlMergingKNN_c(graphW, initialClusters, groupNumber)
     return clusteredLabels
@@ -16,7 +19,7 @@ def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
 
 def gacBuildDigraph_c(dist_matrix, K, a):
     N = dist_matrix.shape[0]
-    sortedDist, NNIndex = gacMink(dist_matrix, max(K+1, 4), 2)
+    sortedDist, NNIndex = gacMink(dist_matrix, max(K+1, 4), dim=2, axis=1)
     sig2 = np.mean(sortedDist[:,1:max(K+1,4)]) * a
     tmpNNDist = np.min(sortedDist[:,1:], axis=1)
 
@@ -34,7 +37,7 @@ def gacBuildDigraph_c(dist_matrix, K, a):
 
 
 def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex):
-    palceholder, NNIndex = gacMink(dist_matrix, p+1, 2)
+    palceholder, NNIndex = gacMink(dist_matrix, p+1, dim=2, axis=1)
     outputClusters = gacOnelink_c(NNIndex)
     return outputClusters
 
@@ -45,6 +48,8 @@ def gacOnelink_c(NNIndex):
     visited = -np.ones(N)
     count = 0
     for i in range(N):
+        if i==1275:
+            x = 1
         linkedIdx = []
         cur_idx = i
         while visited[cur_idx] == -1:
@@ -88,15 +93,137 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
     affinityTab = -affinityTab
     affinityTab = affinityTab - np.diag(np.diag(affinityTab)) + np.diag(myInf*np.ones(numClusters))
     placeholder, KcCluster = gacMink(affinityTab, Kc)
-    """
-    matlab gdlMergingKNN_c line:41
-    """
+    # KcCluster = KcCluster.T
+
     curGroupNum = numClusters
+    RECORD = np.array([1, 2])
     while True:
         usingKcCluster = curGroupNum > 1.2*Kc
         minIndex1, minIndex2 = gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster)
-        cluster1 = initialClusters[minIndex1]
-        cluster2 = initialClusters[minIndex2]
+
+        if minIndex1 == 79 and minIndex2 == 79:
+            np.savetxt('RECORD.txt', RECORD)
+        else:
+            RECORD = np.vstack((RECORD, [minIndex1, minIndex2]))
+        # minIndex1 += 1
+        # minIndex2 += 1
+        cluster1 = list(initialClusters[minIndex1])
+        cluster2 = list(initialClusters[minIndex2])
+        # merge the two clusters
+        new_cluster = np.unique(cluster1+cluster2)
+        # find candidates to be updated
+        if usingKcCluster:
+            KcCluster = np.where(KcCluster == minIndex2, minIndex1, KcCluster)
+            candidates = np.any(KcCluster == minIndex1, axis=0)
+            candidates[np.append(KcCluster[:, minIndex1], KcCluster[:, minIndex2])] = True
+            candidates[minIndex1] = False
+            candidates[minIndex2] = False
+            candidates = np.where(candidates != 0)[0]
+
+        if minIndex2 != curGroupNum:
+            initialClusters[minIndex2] = initialClusters[-1]
+            affinityTab[:curGroupNum-1, minIndex2] = affinityTab[:curGroupNum-1, curGroupNum-1]
+            affinityTab[minIndex2, :curGroupNum-1] = affinityTab[curGroupNum-1, :curGroupNum-1]
+            if usingKcCluster:
+                KcCluster[:, minIndex2] = KcCluster[:, -1]
+                KcCluster = np.where(KcCluster == curGroupNum-1, minIndex2, KcCluster)
+                candidates = np.where(candidates == curGroupNum-1, minIndex2, candidates)
+
+        AsymAffTab[:curGroupNum, minIndex1] = AsymAffTab[:curGroupNum, minIndex1] + AsymAffTab[:curGroupNum, minIndex2]
+        AsymAffTab[:curGroupNum, minIndex2] = AsymAffTab[:curGroupNum, curGroupNum - 1]
+        AsymAffTab[minIndex2, :curGroupNum] = AsymAffTab[curGroupNum-1, :curGroupNum]
+
+        # update the first cluster and remove the second cluster
+        initialClusters[minIndex1] = new_cluster
+        initialClusters.pop(-1)
+        affinityTab[:, curGroupNum-1] = myInf
+        affinityTab[curGroupNum-1, :] = myInf
+        if usingKcCluster:
+            KcCluster = np.delete(KcCluster, -1, axis=1)
+        curGroupNum = curGroupNum - 1
+        if curGroupNum <= groupNumber:
+            break
+
+        # if usingKcCluster and minIndex2 != curGroupNum:
+        #     candidates = np.where(candidates == curGroupNum, minIndex2, candidates)
+
+        # update the affinity table for the merged cluster
+        if usingKcCluster:
+            affinityTab[:curGroupNum, minIndex1] = myInf
+            for groupIndex in candidates:
+                if AsymAffTab[minIndex1, groupIndex] > -myBoundInf and AsymAffTab[groupIndex, minIndex1] > -myBoundInf:
+                    AsymAffTab[minIndex1, groupIndex] = gdlDirectedAffinity_c(graphW, initialClusters, minIndex1, groupIndex)
+                else:
+                    AsymAffTab[groupIndex, minIndex1], AsymAffTab[minIndex1, groupIndex] = gdlAffinity_c(graphW, initialClusters[groupIndex], new_cluster)
+            affinityTab[candidates, minIndex1] = -AsymAffTab[minIndex1, candidates].T - AsymAffTab[candidates, minIndex1]
+        else:
+            affinityTab[minIndex1, minIndex2] = myInf
+            for groupIndex in range(curGroupNum):
+                if groupIndex == minIndex1:
+                    continue
+                if AsymAffTab[minIndex1, groupIndex] > -myBoundInf and AsymAffTab[groupIndex, minIndex1] > -myBoundInf:
+                    AsymAffTab[minIndex1, groupIndex] = gdlDirectedAffinity_c(graphW, initialClusters, minIndex1, groupIndex)
+                else:
+                    AsymAffTab[groupIndex, minIndex1], AsymAffTab[minIndex1, groupIndex] = gdlAffinity_c(graphW, initialClusters[groupIndex], new_cluster)
+            affinityTab[:curGroupNum, minIndex1] = -AsymAffTab[minIndex1, :curGroupNum].T - AsymAffTab[:curGroupNum, minIndex1]
+
+        affinityTab[minIndex1, :curGroupNum] = affinityTab[:curGroupNum, minIndex1].T
+        if usingKcCluster:
+            placeholder, KcCluster[:, minIndex1] = gacMink(affinityTab[:curGroupNum, minIndex1], Kc, 1)
+
+    # generate sample labels
+    clusterLabels = np.ones(numSample)
+    for i in range(len(initialClusters)):
+        clusterLabels[initialClusters[i]] = i
+
+    return clusterLabels
+
+
+def gdlAffinity_c(graphW, cluster_i, cluster_j):
+    sum1 = 0
+    num_i = len(cluster_i)
+    num_j = len(cluster_j)
+    for j in range(num_j):
+        index_j = cluster_j[j]
+        Lij = 0
+        Lji = 0
+        for i in range(num_i):
+            index_i = cluster_i[i]
+            Lij += graphW[index_i, index_j]
+            Lji += graphW[index_j, index_i]
+        sum1 += Lij * Lji
+
+    sum2 = 0
+    for i in range(num_i):
+        index_i = cluster_i[i]
+        Lij = 0
+        Lji = 0
+        for j in range(num_j):
+            index_j = cluster_j[j]
+            Lji += graphW[index_j, index_i]
+            Lij += graphW[index_i, index_j]
+        sum2 += Lji * Lij
+
+    return sum1/(num_i*num_i), sum2/(num_j*num_j)
+
+
+
+def gdlDirectedAffinity_c(graphW, initialClusters, i, j):
+    cluster_i = list(initialClusters[i])
+    cluster_j = list(initialClusters[j])
+    num_i = len(cluster_i)
+    num_j = len(cluster_j)
+    sum = 0
+    for j in range(num_j):
+        index_j = cluster_j[j]
+        Lij = 0
+        Lji = 0
+        for i in range(num_i):
+            index_i = cluster_i[i]
+            Lij += graphW[index_i, index_j]
+            Lji += graphW[index_j, index_i]
+        sum += Lij*Lji
+    return sum/(num_i*num_i)
 
 
 def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
@@ -112,7 +239,27 @@ def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
     minIndex2 = 0
     minElem = 1e10
     if curGroupNum < 1.2*Kc:
-        
+        pass
+    else:
+        # KcCluster2 = copy.deepcopy(KcCluster)
+        # np.where(KcCluster2 < curGroupNum, KcCluster2, curGroupNum)
+        minIndex1, minIndex2 = np.where(affinityTab == np.min(affinityTab[np.unique(KcCluster), :]))
+        # del KcCluster2
+        # gc.collect()
+        # for j in range(curGroupNum):
+        #     for i in range(Kc):
+        #         index_i = KcCluster[i, j]
+        #         if 0 <= index_i < curGroupNum:
+        #             if affinityTab[i, j] < minElem:
+        #                 minElem = affinityTab[index_i, j]
+        #                 minIndex1 = index_i
+        #                 minIndex2 = j
+    minIndex1 = minIndex1[-1]
+    minIndex2 = minIndex2[-1]
+    if minIndex1 > minIndex2:
+        minIndex1, minIndex2 = minIndex2, minIndex1
+
+    # print("minIndex1 = %d, minIndex2 = %d" % (minIndex1, minIndex2))
 
     return minIndex1, minIndex2
 
@@ -120,7 +267,8 @@ def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
 def gdlInitAffinityTable_knn_c(graphW, initClusters, Kc):
     numClusters = len(initClusters)
     affinityTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
-    AsymAffTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
+    # AsymAffTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
+    AsymAffTab = -1e10 * np.ones((numClusters, numClusters))
 
     for j in range(numClusters):
         cluster_j = initClusters[j]
@@ -140,14 +288,15 @@ def gdlInitAffinityTable_knn_c(graphW, initClusters, Kc):
     for j in range(numClusters):
         cluster_j = initClusters[j]
         for i in range(j):
-            if inKcCluster[i,j]:
+            if inKcCluster[i, j]:
                 tmpAsymAff0, tmpAsymAff1 = gdlComputeAffinity(graphW, initClusters[i], cluster_j)
-                affinityTab[i,j] = tmpAsymAff0 + tmpAsymAff1
-                AsymAffTab[i,j] = tmpAsymAff0
-                AsymAffTab[j,i] = tmpAsymAff1
+                affinityTab[i, j] = tmpAsymAff0 + tmpAsymAff1
+                AsymAffTab[i, j] = tmpAsymAff0
+                AsymAffTab[j, i] = tmpAsymAff1
             else:
                 affinityTab[i,j] = -1e10
 
+    # AsymAffTab = AsymAffTab + np.diag(-1e10 * np.ones(numClusters))
     # from upper triangular to full symmetric
     affinityTab = np.triu(affinityTab, 1) + np.triu(affinityTab, 1).T + np.diag(np.diag(affinityTab))
     # affinityTab += np.triu(affinityTab, 1).T
@@ -190,24 +339,30 @@ def computeAverageDegreeAffinity(graphW, cluster_i, cluster_j):
 
 def gacFindKcCluster(affinityTab, Kc):
     Kc = np.ceil(1.2*Kc).astype(np.int)
-    sortedAff, placeholder = gacMink(affinityTab, Kc, 1)
-    inKcCluster = affinityTab <= sortedAff[:,Kc-1].T
+    sortedAff, placeholder = gacMink(affinityTab, Kc, dim=2, axis=0)
+    # inKcCluster = affinityTab <= sortedAff[:, Kc-1]
+    inKcCluster = affinityTab <= np.tile(sortedAff[Kc-1, :], (affinityTab.shape[0], 1))
     inKcCluster = inKcCluster | inKcCluster.T
     return inKcCluster
 
 
-def gacMink (X, k, dim=1):
+def gacMink (X, k, dim=2, axis=0):
     # sortedDist, NNIndex = gacPartial_sort(X, k, dim)
-    sortedDist = np.sort(X, axis=1)
-    NNIndex = np.argsort(X, axis=1)
-    sortedDist = sortedDist[:, :k]
-    NNIndex = NNIndex[:, :k]
+    if dim == 2:
+        if axis == 0:    # 按列排
+            sortedDist = np.sort(X, kind='mergesort', axis=0)[:k, :]
+            NNIndex = np.argsort(X, kind='mergesort', axis=0)[:k, :]
+        else:    # 按行排
+            sortedDist = np.sort(X, kind='mergesort', axis=1)[:, :k]
+            NNIndex = np.argsort(X, kind='mergesort', axis=1)[:, :k]
+    if dim == 1:
+        sortedDist = np.sort(X, kind='mergesort')[:k]
+        NNIndex = np.argsort(X, kind='mergesort')[:k]
+
     return sortedDist, NNIndex
 
 
-def gacPartial_sort(X, k, dim):
-    # nrows, ncols = X.shape
-    # partial_sort_rows_withIdx((double *)outdata, pIdx, (double *)indata, rank, ncols, nrows);
-    sortedDist = np.sort(X, axis=1)
-    NNIndex = np.argsort(X, axis=1)
-    return sortedDist, NNIndex
+# def gacPartial_sort(X, k, dim):
+#     sortedDist = np.sort(X, axis=1)
+#     NNIndex = np.argsort(X, axis=1)
+#     return sortedDist, NNIndex
