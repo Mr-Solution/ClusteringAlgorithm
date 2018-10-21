@@ -9,14 +9,13 @@ from scipy.spatial import distance
 from scipy.sparse import coo_matrix
 
 
+# Not used. Replace with sklearn.preprocessing.MinMaxScaler
 def data_Normalized(data):
     """
     :param data:
     :return: normalized data
     row: samples
     cul: features
-
-    use sklearn.preprocessing.MinMaxScaler
     """
     # print('------ Normalizing data ------')
     # m, n = data.shape
@@ -52,17 +51,17 @@ def rank_dis_c(fea, a=1):
     return rodist
 
 
-"""
-build directed graph
-arguments:
-    distance_matrix: pairwise distances
-    K: the number of nearest neighbors for KNN graph
-    a: for covariance estimation
-return:
-    graphW: asymmetric weighted adjacency matrix
-    NNIndex: nearest neighbors, N*(2K+1) matrix
-"""
+# build directed graph
 def gacBuildDigraph(distance_matrix, K, a):
+    """
+    arguments:
+        distance_matrix: pairwise distances
+        K: the number of nearest neighbors for KNN graph
+        a: for covariance estimation
+    return:
+        graphW: asymmetric weighted adjacency matrix
+        NNIndex: nearest neighbors, N*(2K+1) matrix
+    """
     # NN indices
     N = distance_matrix.shape[0]
     sortedDist = np.sort(distance_matrix)
@@ -86,9 +85,7 @@ def gacBuildDigraph(distance_matrix, K, a):
     return graphW, NNIndex
 
 
-"""
-merge each vertex with its nearest neighbor
-"""
+# merge each vertex with its nearest neighbor
 def gacNNMerge(distance_matrix, NNIndex):
     sampleNum = distance_matrix.shape[0]
 
@@ -280,5 +277,3 @@ def constructW_PKN(X, k=5, issymmetric=1):
         W = (W+W.T)/2
 
     return W
-
-

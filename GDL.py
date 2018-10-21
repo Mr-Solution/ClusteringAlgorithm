@@ -7,7 +7,7 @@ import gc
 
 
 def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
-    print("------ Building graph and forming iniital clusters with l-links ------")
+    print("------ Building graph and forming inital clusters with l-links ------")
     graphW, NNIndex = gacBuildDigraph_c(dist_set, K, a)
     initialClusters = gacBuildLlinks_cwarpper(dist_set, p, NNIndex)
     del dist_set, NNIndex
@@ -239,7 +239,13 @@ def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
     minIndex2 = 0
     minElem = 1e10
     if curGroupNum < 1.2*Kc:
-        pass
+        for j in range(curGroupNum):
+            for i in range(Kc):
+                index_i = KcCluster[i, j]
+                if 0 <= index_i < curGroupNum and affinityTab[index_i, j] < minElem:
+                    minElem = affinityTab[index_i, j]
+                    minIndex1 = index_i
+                    minIndex2 = j
     else:
         # KcCluster2 = copy.deepcopy(KcCluster)
         # np.where(KcCluster2 < curGroupNum, KcCluster2, curGroupNum)
@@ -254,8 +260,13 @@ def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
         #                 minElem = affinityTab[index_i, j]
         #                 minIndex1 = index_i
         #                 minIndex2 = j
-    minIndex1 = minIndex1[-1]
-    minIndex2 = minIndex2[-1]
+
+        # try:
+        minIndex1 = minIndex1[-1]
+        minIndex2 = minIndex2[-1]
+        # except Exception:
+        #     print("error")
+
     if minIndex1 > minIndex2:
         minIndex1, minIndex2 = minIndex2, minIndex1
 
