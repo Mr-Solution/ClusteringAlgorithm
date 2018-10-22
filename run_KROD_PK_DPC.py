@@ -3,6 +3,7 @@
 import DPC
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import MinMaxScaler
 from tool import tool, measure, loadData
 import time
 #import tool.PCA
@@ -35,7 +36,8 @@ def pca(data_mat, top_n_feature = 999) :
 """
 
 if __name__ == '__main__':
-    print("hello")
+    print("KROD_PCA_KNN_DPC")
+    print("------ Loading data ------")
     # dataset = 'dataset/COIL20_32.txt'
     # dataset = 'dataset/mnist.txt'
     # dataset = 'dataset/lung.txt'
@@ -45,30 +47,34 @@ if __name__ == '__main__':
     # dataset = 'dataset/Jaffe.txt'
     fea, labels = loadData.load_coil100()
 
-    # print("KROD_PK_DPC    dataset =",dataset)
     # data = np.loadtxt(dataset)
-    # print("data.shape =",data.shape)
     # fea = data[:, :-1]
     # labels = data[:,-1]
-    fea = tool.data_Normalized(fea)
+    # print("dataset = %s    data.shape = %s" % (dataset, fea.shape))
 
+    print("------ Normalizing data ------")
+    # tool.data_Normalized(fea)
+    Normalizer = MinMaxScaler()
+    Normalizer.fit(fea)
+    fea = Normalizer.transform(fea)
+
+    print("------ Decomposition ------")
     #fea,b,c = PCA.pca(fea, 150)
     pca = PCA(n_components=150)
     fea = pca.fit_transform(fea)
-    print("fea.shape =",fea.shape)
+    print("fea.shape =", fea.shape)
 
     u = 1
     K = 20
     groupNumber = len(np.unique(labels))
 
+    print("------ Clustering ------")
     start = time.time()
     cl = DPC.knnDPC1(fea, groupNumber, K, u)
     end = time.time()
     print("time =", end - start)
 
     nmi = measure.NMI(labels, cl)
-    print("nmi =",nmi)
+    print("nmi =", nmi)
     acc = measure.ACC(labels, cl)
-    print("acc =",acc)
-
-    print("world")
+    print("acc =", acc)

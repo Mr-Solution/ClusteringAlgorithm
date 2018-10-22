@@ -8,6 +8,7 @@ import time
 
 if __name__ == '__main__':
     print("hello KROD DPC")
+    print("------ Loading data ------")
     # dataset = 'dataset/COIL20_32.txt'
     # dataset = 'dataset/mnist.txt'
     # dataset = 'dataset/lung.txt'
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     # data = np.loadtxt(dataset)
     # fea = data[:, :-1]
     # labels = data[:,-1]
-    # fea = tool.data_Normalized(fea)
+    # tool.data_Normalized(fea)
     print("------ Normalizing data ------")
     Normalizer = MinMaxScaler()
     Normalizer.fit(fea)
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     u = 10
     groupNumber = len(np.unique(labels))
 
+    print("------ Clustering ------")
     start = time.time()
     cl = DPC.DPC1(fea, groupNumber, p, u)
     end = time.time()
@@ -40,4 +42,3 @@ if __name__ == '__main__':
     print("nmi =", nmi)
     acc = measure.ACC(labels, cl)
     print("acc =", acc)
-    print('world')

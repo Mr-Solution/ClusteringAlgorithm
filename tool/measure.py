@@ -3,8 +3,8 @@ from munkres import Munkres, make_cost_matrix
 import numpy as np
 from . import hungarian
 
-def NMI(labels, labels_pred):
-    nmi = metrics.normalized_mutual_info_score(labels, labels_pred)
+def NMI(labels_real, labels_pred):
+    nmi = metrics.normalized_mutual_info_score(labels_real, labels_pred)
     return nmi
 
 def ACC(groundTruth, predValue):
@@ -28,45 +28,42 @@ def ACC(groundTruth, predValue):
     ACC = np.sum(res == groundTruth) / groundTruth.shape[0]
     return ACC
 
-"""
-L1: 真实标签
-L2: 预测标签
-"""
-def bestMap(L1, L2):
+
+def bestMap(labels_real, labels_pred):
     """
     两个向量的最佳匹配
-    :param L1:np.ndarray
-    :param L2:np.ndarray
+    :param labels_real:np.ndarray
+    :param labels_pred:np.ndarray
     :return:L1对L2的最佳匹配 np.ndarray
     """
-    Label1 = np.unique(L1)
+    Label1 = np.unique(labels_real)
     nClass1 = len(Label1)
-    Label2 = np.unique(L2)
+    Label2 = np.unique(labels_pred)
     nClass2 = len(Label2)
 
     # predValue中间有跳过的label ： 0，1，5，6，10
-    if nClass2 < np.max(L2):
+    if nClass2 < np.max(labels_pred):
         newLabel2 = np.argsort(Label2)
         for i in range(nClass2):
             if Label2[i] != newLabel2[i]:
-                L2 = np.where(L2 == Label2[i], newLabel2[i], L2)
+                labels_pred = np.where(labels_pred == Label2[i], newLabel2[i], labels_pred)
         Label2 = newLabel2
 
     # 如果groundTruth是从1开始计数，而predValue是从0开始计数，那么predValue += 1
-    if nClass1 == np.max(L1) and nClass2 > np.max(L2):
-        L2 = L2 + 1
+    if nClass1 == np.max(labels_real) and nClass2 > np.max(labels_pred):
+        labels_pred = labels_pred + 1
         Label2 = Label2 + 1
 
     nClass = max(nClass1, nClass2)
     G = np.zeros((nClass, nClass))
     for i in range(nClass1):
         for j in range(nClass2):
-            G[i, j] = np.sum(((L1 == Label1[i]) & (L2 == Label2[j])))
+            G[i, j] = np.sum(((labels_real == Label1[i]) & (labels_pred == Label2[j])))
     myhungarian = hungarian.Hungarian(G, is_profit_matrix=True)
     myhungarian.calculate()
     resultMap = myhungarian.get_results()
-    resultMap = sorted(resultMap, key=lambda s: s[1]) # resultMap[1] = (trueId, predId)
-    newL = np.zeros(L1.shape[0], dtype=np.uint)
+    resultMap = sorted(resultMap, key=lambda s: s[1])  # resultMap[1] = (trueId, predId)
+    newL = np.zeros(labels_real.shape[0], dtype=np.uint)
     for i,v in enumerate(Label1):
-        newL[L2 == v] = Label1[resultMap[i][0]]
+        newL[labels_pred == v] = Label1[resultMap[i][0]]
     return newL
