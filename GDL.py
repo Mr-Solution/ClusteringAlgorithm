@@ -6,6 +6,7 @@ import copy
 import gc
 
 
+# gdl algorithm
 def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
     print("------ Building graph and forming inital clusters with l-links ------")
     graphW, NNIndex = gacBuildDigraph_c(dist_set, K, a)
@@ -17,10 +18,19 @@ def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
     return clusteredLabels
 
 
+# construct a neighborhood graph (directed graph)
 def gacBuildDigraph_c(dist_matrix, K, a):
+    """
+    graph W = [wij],    wij = exp(-dist(i,j)**2/sigma**2), if i is in i's K-nearest neighbors
+    :param dist_matrix:
+    :param K: K-nearest neighbors
+    :param a: free parameter to calculate sigma
+    :return:
+    """
     N = dist_matrix.shape[0]
     sortedDist, NNIndex = gacMink(dist_matrix, max(K+1, 4), dim=2, axis=1)
-    sig2 = np.mean(sortedDist[:,1:max(K+1,4)]) * a
+    # sig2 = np.mean(sortedDist[:, 1:max(K+1, 4)] ** 2) * a / (N * K)
+    sig2 = np.mean(sortedDist[:, 1:max(K + 1, 4)]) * a
     tmpNNDist = np.min(sortedDist[:,1:], axis=1)
 
     while np.any(np.exp(-tmpNNDist/sig2) < 1e-5):
@@ -36,8 +46,20 @@ def gacBuildDigraph_c(dist_matrix, K, a):
     return graphW, NNIndex
 
 
-def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex):
-    palceholder, NNIndex = gacMink(dist_matrix, p+1, dim=2, axis=1)
+# initial clusters
+def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex=[]):
+    """
+    The initial small clusters are simply constructed as weakly connected components of a K0-NN graph
+    where the neighborhood size K0 is small typically as 1 or 2
+    :param dist_matrix:
+    :param p:
+    :param NNIndex:
+    :return:
+    """
+    if len(NNIndex):
+        NNIndex = NNIndex[:, :p+1]
+    else:
+        palceholder, NNIndex = gacMink(dist_matrix, p+1, dim=2, axis=1)
     outputClusters = gacOnelink_c(NNIndex)
     return outputClusters
 
@@ -65,9 +87,8 @@ def gacOnelink_c(NNIndex):
 
     initialClusters = []
     visited = np.array(visited)
-    for id in range(count):
-        indics = np.where(visited==id)[0].tolist()
-        initialClusters.append(indics)
+    for i in range(count):
+        initialClusters.append(np.where(visited == i)[0].tolist())
 
     return initialClusters
 
@@ -179,33 +200,51 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
     return clusterLabels
 
 
+# calculate the affinity between two clusters
 def gdlAffinity_c(graphW, cluster_i, cluster_j):
-    sum1 = 0
     num_i = len(cluster_i)
     num_j = len(cluster_j)
-    for j in range(num_j):
-        index_j = cluster_j[j]
-        Lij = 0
-        Lji = 0
-        for i in range(num_i):
-            index_i = cluster_i[i]
-            Lij += graphW[index_i, index_j]
-            Lji += graphW[index_j, index_i]
-        sum1 += Lij * Lji
+    sum1 = 0
+    # affinity between vertexs in cluster_i and cluster_j
+    # for j in range(num_j):
+    #     index_j = cluster_j[j]
+    #     Lij = 0
+    #     Lji = 0
+    #     for i in range(num_i):
+    #         index_i = cluster_i[i]
+    #         Lij += graphW[index_i, index_j]
+    #         Lji += graphW[index_j, index_i]
+    #     sum1 += Lij * Lji
 
+    for j in cluster_j:
+        indegree = 0    # indegree
+        outdegree = 0    # outdegree
+        for i in cluster_i:
+            indegree += graphW[i, j]
+            outdegree += graphW[j, i]
+        sum1 += indegree * outdegree
+
+    # affinity between vertex in cluster_j and cluster_i
     sum2 = 0
-    for i in range(num_i):
-        index_i = cluster_i[i]
-        Lij = 0
-        Lji = 0
-        for j in range(num_j):
-            index_j = cluster_j[j]
-            Lji += graphW[index_j, index_i]
-            Lij += graphW[index_i, index_j]
-        sum2 += Lji * Lij
+    # for i in range(num_i):
+    #     index_i = cluster_i[i]
+    #     Lij = 0
+    #     Lji = 0
+    #     for j in range(num_j):
+    #         index_j = cluster_j[j]
+    #         Lji += graphW[index_j, index_i]
+    #         Lij += graphW[index_i, index_j]
+    #     sum2 += Lji * Lij
+
+    for i in cluster_i:
+        indegree = 0
+        outdegree = 0
+        for j in cluster_j:
+            indegree += graphW[j, i]
+            outdegree  += graphW[i, j]
+        sum2 += indegree * outdegree
 
     return sum1/(num_i*num_i), sum2/(num_j*num_j)
-
 
 
 def gdlDirectedAffinity_c(graphW, initialClusters, i, j):
@@ -357,7 +396,8 @@ def gacFindKcCluster(affinityTab, Kc):
     return inKcCluster
 
 
-def gacMink (X, k, dim=2, axis=0):
+# C++ std::partial_sort
+def gacMink(X, k, dim=2, axis=0):
     # sortedDist, NNIndex = gacPartial_sort(X, k, dim)
     if dim == 2:
         if axis == 0:    # 按列排
