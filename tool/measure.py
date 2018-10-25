@@ -1,5 +1,5 @@
 from sklearn import metrics
-from munkres import Munkres, make_cost_matrix
+# from munkres import Munkres, make_cost_matrix
 import numpy as np
 from . import hungarian
 

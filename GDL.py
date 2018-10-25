@@ -121,13 +121,8 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
     while True:
         usingKcCluster = curGroupNum > 1.2*Kc
         minIndex1, minIndex2 = gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster)
+        # print("minIndex1 = %d  minIndex2 = %d" % (minIndex1, minIndex2))
 
-        if minIndex1 == 79 and minIndex2 == 79:
-            np.savetxt('RECORD.txt', RECORD)
-        else:
-            RECORD = np.vstack((RECORD, [minIndex1, minIndex2]))
-        # minIndex1 += 1
-        # minIndex2 += 1
         cluster1 = list(initialClusters[minIndex1])
         cluster2 = list(initialClusters[minIndex2])
         # merge the two clusters
@@ -178,7 +173,7 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
                     AsymAffTab[groupIndex, minIndex1], AsymAffTab[minIndex1, groupIndex] = gdlAffinity_c(graphW, initialClusters[groupIndex], new_cluster)
             affinityTab[candidates, minIndex1] = -AsymAffTab[minIndex1, candidates].T - AsymAffTab[candidates, minIndex1]
         else:
-            affinityTab[minIndex1, minIndex2] = myInf
+            affinityTab[minIndex1, minIndex1] = myInf
             for groupIndex in range(curGroupNum):
                 if groupIndex == minIndex1:
                     continue
@@ -288,23 +283,27 @@ def gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster):
     else:
         # KcCluster2 = copy.deepcopy(KcCluster)
         # np.where(KcCluster2 < curGroupNum, KcCluster2, curGroupNum)
-        minIndex1, minIndex2 = np.where(affinityTab == np.min(affinityTab[np.unique(KcCluster), :]))
-        # del KcCluster2
-        # gc.collect()
+        # minIndex1, minIndex2 = np.where(affinityTab == np.min(affinityTab[np.unique(KcCluster), :])) # error
+
         # for j in range(curGroupNum):
         #     for i in range(Kc):
         #         index_i = KcCluster[i, j]
         #         if 0 <= index_i < curGroupNum:
-        #             if affinityTab[i, j] < minElem:
+        #             if affinityTab[index_i, j] < minElem:
         #                 minElem = affinityTab[index_i, j]
         #                 minIndex1 = index_i
         #                 minIndex2 = j
 
-        # try:
+        xids = KcCluster.T
+        yids = np.arange(curGroupNum)
+        xids = xids.reshape((1, -1))
+        yids = np.tile(yids, (Kc, 1))
+        yids = yids.T
+        yids = yids.reshape((1, -1))
+        minElem = np.min(affinityTab[xids, yids])
+        minIndex1, minIndex2 = np.where(affinityTab == minElem)
         minIndex1 = minIndex1[-1]
         minIndex2 = minIndex2[-1]
-        # except Exception:
-        #     print("error")
 
     if minIndex1 > minIndex2:
         minIndex1, minIndex2 = minIndex2, minIndex1
@@ -344,7 +343,7 @@ def gdlInitAffinityTable_knn_c(graphW, initClusters, Kc):
                 AsymAffTab[i, j] = tmpAsymAff0
                 AsymAffTab[j, i] = tmpAsymAff1
             else:
-                affinityTab[i,j] = -1e10
+                affinityTab[i, j] = -1e10
 
     # AsymAffTab = AsymAffTab + np.diag(-1e10 * np.ones(numClusters))
     # from upper triangular to full symmetric

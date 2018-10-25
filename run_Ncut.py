@@ -35,7 +35,7 @@ if __name__ == '__main__':
     groupNumber = len(np.unique(labels))
     start = time.time()
     # 默认的构建相似矩阵方式是高斯核，但是效果很差，这里采用 k 邻近法，调参n_neighbors
-    clustering = SpectralClustering(n_clusters=groupNumber, affinity='nearest_neighbors', n_neighbors=70, n_init=groupNumber).fit(fea)
+    clustering = SpectralClustering(n_clusters=groupNumber, affinity='nearest_neighbors', n_neighbors=100, n_init=groupNumber).fit(fea)
     # clustering = SpectralClustering(n_clusters=groupNumber, n_init=groupNumber).fit(fea)
     cl = clustering.labels_
     end = time.time()
