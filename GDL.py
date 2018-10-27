@@ -47,7 +47,7 @@ def gacBuildDigraph_c(dist_matrix, K, a):
 
 
 # initial clusters
-def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex=[]):
+def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex=None):
     """
     The initial small clusters are simply constructed as weakly connected components of a K0-NN graph
     where the neighborhood size K0 is small typically as 1 or 2
@@ -56,7 +56,7 @@ def gacBuildLlinks_cwarpper(dist_matrix, p, NNIndex=[]):
     :param NNIndex:
     :return:
     """
-    if len(NNIndex):
+    if NNIndex is not None:
         NNIndex = NNIndex[:, :p+1]
     else:
         palceholder, NNIndex = gacMink(dist_matrix, p+1, dim=2, axis=1)
