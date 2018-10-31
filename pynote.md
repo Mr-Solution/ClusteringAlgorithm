@@ -50,3 +50,11 @@ pycharm 中的代码文件不要以 test 开头，因为 pycharm 会把所有以
 ##### 矩阵生成连通图
 
 sklearn.feature_extraction.image.img_to_graph
+
+##### ctype
+
+python2.4之后自带模块
+
+import 之后，dll = ctype.cdll.LoadLibrary("func.dll"), dll.func() 即可使用。
+
+注意，python 是64位的还是32位的，导入的 C/C++ 动态库(.so， .dll)就需要与之相对应。
