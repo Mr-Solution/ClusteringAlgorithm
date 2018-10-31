@@ -178,3 +178,32 @@ def EProjSimplex_new(v, k=1):
         x = v0
 
     return x
+
+
+# construct similarity matrix with probabilistic k-nearest neighbors
+def constructW_PKN(pts, k=5, issymmetric=1):
+    """
+    It is a parameter free, distance consistent similarity
+    arguments:
+    X: each row is a data point
+    k: number of neighbors
+    issymmetric: set W = (W+W')/2 if issymmetric=1
+    return:
+    W = similarity matrix
+    """
+    print("------ Constructing similarity matrix ------")
+    n = pts.shape[0]
+    # dim = pts.shape[1]
+    edist = distance.cdist(pts, pts)
+    indices = np.argsort(edist, axis=1)
+
+    W = np.zeros((n, n))
+    for i in range(n):
+        id = indices[i, 1:k+2]
+        di = edist[i, id]
+        W[i, id] = (di[k]-di)/(k*di[k]-np.sum(di[:k])+np.spacing(1))
+
+    if issymmetric == 1:
+        W = (W+W.T)/2
+
+    return W
