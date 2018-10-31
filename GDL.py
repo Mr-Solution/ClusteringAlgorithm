@@ -105,7 +105,7 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
     myInf = 1e10
     myBoundInf = 1e8
     Kc = 10
-    VERBOSE = False
+    # VERBOSE = False
     numClusters = len(initialClusters)
     if numClusters < groupNumber:
         print("err! Too few initial clusters. Do not need merging!")
@@ -117,7 +117,6 @@ def gdlMergingKNN_c(graphW, initialClusters, groupNumber):
     # KcCluster = KcCluster.T
 
     curGroupNum = numClusters
-    RECORD = np.array([1, 2])
     while True:
         usingKcCluster = curGroupNum > 1.2*Kc
         minIndex1, minIndex2 = gacPartialMin_knn_c(affinityTab, curGroupNum, KcCluster)
@@ -317,13 +316,14 @@ def gdlInitAffinityTable_knn_c(graphW, initClusters, Kc):
     numClusters = len(initClusters)
     affinityTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
     # AsymAffTab = np.zeros((numClusters, numClusters))  #-1e10 * np.ones((numClusters, numClusters))
+    # asymmetric affinity from cluster_i to cluster_j
     AsymAffTab = -1e10 * np.ones((numClusters, numClusters))
 
     for j in range(numClusters):
         cluster_j = initClusters[j]
         for i in range(j):
             cluster_i = initClusters[i]
-            affinityTab[i,j] = -computeAverageDegreeAffinity(graphW, cluster_i, cluster_j)
+            affinityTab[i, j] = -computeAverageDegreeAffinity(graphW, cluster_i, cluster_j)
         #affinityTab[j,j] = -1e10
 
     # from upper triangular to full symmetric
@@ -378,11 +378,12 @@ def gdlComputeAffinity(pW, cluster_i, cluster_j):
     return sum1/(num_i*num_i), sum2/(num_j*num_j)
 
 
+# the product of average indegree and average outdegree
 def computeAverageDegreeAffinity(graphW, cluster_i, cluster_j):
     sum = 0
     for i in cluster_i:
         for j in cluster_j:
-            sum += graphW[i,j] + graphW[j,i]
+            sum += graphW[i, j] + graphW[j, i]
     return sum/(len(cluster_i) * len(cluster_j))
 
 

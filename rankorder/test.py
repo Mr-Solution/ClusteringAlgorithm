@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import rodfunc
+from . import rodfunc
 import numpy as np
 import matplotlib.pyplot as plt
 
