@@ -10,35 +10,55 @@ from scipy.sparse import coo_matrix
 
 
 # Not used. Replace with sklearn.preprocessing.MinMaxScaler
-def data_Normalized(data):
-    """
-    :param data:
-    :return: normalized data
-    row: samples
-    cul: features
-    """
-    # print('------ Normalizing data ------')
-    # m, n = data.shape
-    # b1 = []
-    # b2 = []
-    # # 遍历每一个特征
-    # for i in range(n):
-    #     amax = np.max(data[:, i])
-    #     amin = np.min(data[:, i])
-    #     if amax - amin == 0:    # to avoid division by zero
-    #         # continue
-    #         data[:, i] = 0
-    #         continue
-    #     for j in range(m):
-    #         data[j, i] = (data[j, i] - amin) / (amax - amin)
-    #
-    #     b1.append(amin)
-    #     b2.append(amax - amin)
-    #
-    # data = np.where(np.isnan(data), 0, data)
-    # return data  # , b1, b2
+# def data_Normalized(data):
+#     """
+#     :param data:
+#     :return: normalized data
+#     row: samples
+#     cul: features
+#     """
+#     print('------ Normalizing data ------')
+#     m, n = data.shape
+#     b1 = []
+#     b2 = []
+#     # 遍历每一个特征
+#     for i in range(n):
+#         amax = np.max(data[:, i])
+#         amin = np.min(data[:, i])
+#         if amax - amin == 0:    # to avoid division by zero
+#             # continue
+#             data[:, i] = 0
+#             continue
+#         for j in range(m):
+#             data[j, i] = (data[j, i] - amin) / (amax - amin)
+#
+#         b1.append(amin)
+#         b2.append(amax - amin)
+#
+#     data = np.where(np.isnan(data), 0, data)
+#     return data  # , b1, b2
 
 
+# The original rank order distance
+def rank_order_dis(fea):
+    n_samples = fea.shape[0]
+    e_distances = distance.cdist(fea, fea, 'euclidean')
+    nn_indices = np.argsort(e_distances, kind='mergesort')
+    # order[i, j] 表示点 j 在点 i 的 nn_indices 列表中是第几位，即公式 Oi(j)
+    order = np.argsort(nn_indices, kind='mergesort')
+    rodistance = np.zeros((n_samples, n_samples))
+    # asymmetric distance
+    for i in range(n_samples):
+        for j in range(n_samples):
+            ids = nn_indices[i, :order[i, j]]
+            if i != j:
+                rodistance[i, j] = np.sum(order[j, ids]) / min(order[i, j], order[j, i])
+    # symmetric distance  formula (2)
+    rodistance = rodistance + rodistance.T
+    return rodistance
+
+
+# accelerated rank order distance
 def rank_dis_c(fea, a=1):
     dist = distance.cdist(fea, fea)
     dist = dist / np.max(dist)
@@ -48,6 +68,7 @@ def rank_dis_c(fea, a=1):
     rodist = rows + rows.T + 2
     rodist = rodist / np.max(rodist)
     rodist = (rodist) * np.exp((dist * dist) / a)
+    rodist = rodist - np.diag(np.diag(rodist))
     return rodist
 
 

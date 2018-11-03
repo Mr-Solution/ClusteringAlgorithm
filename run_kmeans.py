@@ -9,7 +9,7 @@ import time
 
 if __name__ == '__main__':
     print("k-means")
-    # dataset = 'dataset/COIL20_32.txt'
+    dataset = 'dataset/COIL20_32.txt'
     # dataset = 'dataset/Isolet.txt'
     # dataset = 'dataset/Jaffe.txt'
     # dataset = 'dataset/lung.txt'

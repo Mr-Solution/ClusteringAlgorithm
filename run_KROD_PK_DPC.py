@@ -38,19 +38,19 @@ def pca(data_mat, top_n_feature = 999) :
 if __name__ == '__main__':
     print("KROD_PCA_KNN_DPC")
     print("------ Loading data ------")
-    # dataset = 'dataset/COIL20_32.txt'
-    # dataset = 'dataset/mnist.txt'
-    # dataset = 'dataset/lung.txt'
-    # dataset = 'dataset/USPS.txt'
-    # dataset = 'dataset/Isolet.txt'
-    # dataset = 'dataset/TOX.txt'
-    # dataset = 'dataset/Jaffe.txt'
-    fea, labels = loadData.load_coil100()
+    # data_set = 'dataset/COIL20_32.txt'    # K=20 u=1
+    data_set = 'dataset/mnist.txt'    # K=20 u=1
+    # data_set = 'dataset/lung.txt'    # K=10 u=0.1
+    # data_set = 'dataset/USPS.txt'    # K=20 u=1
+    # data_set = 'dataset/Isolet.txt'    # K=25 u=10
+    # data_set = 'dataset/TOX.txt'    # K=20 u=10
+    # data_set = 'dataset/Jaffe.txt'    # K=10  u=0.1
+    # fea, labels = loadData.load_coil100()
 
-    # data = np.loadtxt(dataset)
-    # fea = data[:, :-1]
-    # labels = data[:,-1]
-    # print("dataset = %s    data.shape = %s" % (dataset, fea.shape))
+    data = np.loadtxt(data_set)
+    fea = data[:, :-1]
+    labels = data[:,-1]
+    print("data_set = %s    data.shape = %s" % (data_set, fea.shape))
 
     print("------ Normalizing data ------")
     # tool.data_Normalized(fea)
@@ -64,17 +64,19 @@ if __name__ == '__main__':
     fea = pca.fit_transform(fea)
     print("fea.shape =", fea.shape)
 
-    u = 1
     K = 20
-    groupNumber = len(np.unique(labels))
+    u = 1
+    group_number = len(np.unique(labels))
 
     print("------ Clustering ------")
     start = time.time()
-    cl = DPC.knnDPC1(fea, groupNumber, K, u)
+    labels_pred = DPC.knnDPC1(fea, group_number, K, u)
     end = time.time()
     print("time =", end - start)
 
-    nmi = measure.NMI(labels, cl)
+    nmi = measure.NMI(labels, labels_pred)
     print("nmi =", nmi)
-    acc = measure.ACC(labels, cl)
+    acc = measure.ACC(labels, labels_pred)
     print("acc =", acc)
+    precision_score = measure.precision_score(labels, labels_pred)
+    print("precision_score =", precision_score)

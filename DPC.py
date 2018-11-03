@@ -17,8 +17,8 @@ def DPC1(fea, k, percent, sigma):
     """
     NUC = k;
 
-    dist = tool.rank_dis_c(fea, sigma)
-    dist = dist - np.diag(np.diag(dist))
+    # dist = tool.rank_dis_c(fea, sigma)
+    dist = tool.rank_order_dis(fea)
     sample_num = dist.shape[0]
     N = pow(sample_num, 2)
 
@@ -230,11 +230,13 @@ def DPC2(fea, k, percent):
     # print("nc = %d nh = %d"%(nc,nh))
     return cl
 
+
 def knnDPC1(fea, k, K, sigma2):
     NUC = k;
 
-    dist = tool.rank_dis_c(fea, sigma2)
-    dist = dist - np.diag(np.diag(dist))
+    # dist = tool.rank_dis_c(fea, sigma2)
+    dist = tool.rank_order_dis(fea)
+
     sample_num = dist.shape[0]
     N = pow(sample_num, 2)
 

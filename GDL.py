@@ -7,9 +7,9 @@ import gc
 
 
 # gdl algorithm
-def gdl(dist_set, groupNumber, K=20, a=1, usingKcCluster=True, p=1):
+def gdl(dist_set, groupNumber, k=20, a=1, usingKcCluster=True, p=1):
     print("------ Building graph and forming inital clusters with l-links ------")
-    graphW, NNIndex = gacBuildDigraph_c(dist_set, K, a)
+    graphW, NNIndex = gacBuildDigraph_c(dist_set, k, a)
     initialClusters = gacBuildLlinks_cwarpper(dist_set, p, NNIndex)
     del dist_set, NNIndex
     gc.collect()

@@ -3,9 +3,11 @@ from sklearn import metrics
 import numpy as np
 from . import hungarian
 
+
 def NMI(labels_real, labels_pred):
     nmi = metrics.normalized_mutual_info_score(labels_real, labels_pred)
     return nmi
+
 
 def ACC(groundTruth, predValue):
     """
@@ -67,3 +69,7 @@ def bestMap(labels_real, labels_pred):
     for i,v in enumerate(Label1):
         newL[labels_pred == v] = Label1[resultMap[i][0]]
     return newL
+
+
+def precision_score(labels_real, labels_pred):
+    return metrics.precision_score(labels_real, bestMap(labels_real, labels_pred), average='micro')

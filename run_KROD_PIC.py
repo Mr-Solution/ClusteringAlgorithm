@@ -1,30 +1,34 @@
 # -*- coding:utf-8 -*-
 
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from tool import tool, measure, loadData
 import time
 
 if __name__ == '__main__':
-    print("hello")
-    """ load data """
-    # dataset = 'dataset/COIL20_32.txt'
-    # dataset = 'dataset/mnist.txt'
-    # dataset = 'dataset/lung.txt'
-    # dataset = 'dataset/USPS.txt'
-    # dataset = 'dataset/Isolet.txt'
-    # dataset = 'dataset/TOX.txt'    # K=5, v=1.2, u=1
-    # dataset = 'dataset/Jaffe.txt'
-    dataset = 'dataset/lung.txt'
+    print("KROD PIC")
+    print("------ Loading data ------")
+    data_set = 'dataset/COIL20_32.txt'    # K=20 u=1
+    # data_set = 'dataset/mnist.txt'    # K=20 u=1
+    # data_set = 'dataset/lung.txt'    # K=10 u=0.1
+    # data_set = 'dataset/USPS.txt'    # K=20 u=1
+    # data_set = 'dataset/Isolet.txt'    # K=25 u=10
+    # data_set = 'dataset/TOX.txt'    # K=20 u=10
+    # data_set = 'dataset/Jaffe.txt'    # K=10  u=0.1
 
     # fea, labels = loadData.load_coil100()
 
-    data = np.loadtxt(dataset)  # K = 25 v = 10 z =0.01
-    print("KROD PIC    dataset =", dataset)
-    print("data.shape =",data.shape)
+    data = np.loadtxt(data_set)
     fea = data[:, :-1]
     labels = data[:, -1]
-    fea = tool.data_Normalized(fea)
-    """ clustering """
+    print("data_set = %s    data.shape = %s" % (data_set, fea.shape))
+
+    print("------ Normalizing data ------")
+    # tool.data_Normalized(fea)
+    Normalizer = MinMaxScaler()
+    Normalizer.fit(fea)
+    fea = Normalizer.transform(fea)
+
     u = 1
     dist = tool.rank_dis_c(fea, u)
     dist = dist - np.diag(np.diag(dist))
@@ -47,18 +51,13 @@ if __name__ == '__main__':
     numClusters = len(initialCluster)
 
     start = time.time()
-    cl = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
+    labels_pred = tool.gacMerging(graphW, initialCluster, groupNumber, 'path', z)
     end = time.time()
     print("time =",end - start)
 
-    nmi = measure.NMI(labels, cl)
+    nmi = measure.NMI(labels, labels_pred)
     print("nmi =",nmi)
-    acc = measure.ACC(labels, cl)
+    acc = measure.ACC(labels, labels_pred)
     print("acc =",acc)
-
-    print("world")
-
-
-
-
-
+    precision_score = measure.precision_score(labels, labels_pred)
+    print("precision_score =", precision_score)
