@@ -8,7 +8,7 @@ import time
 if __name__ == '__main__':
     print("KROD PIC")
     print("------ Loading data ------")
-    data_set = 'dataset/COIL20_32.txt'    # K=20 u=1
+    # data_set = 'dataset/COIL20_32.txt'    # K=20 u=1
     # data_set = 'dataset/mnist.txt'    # K=20 u=1
     # data_set = 'dataset/lung.txt'    # K=10 u=0.1
     # data_set = 'dataset/USPS.txt'    # K=20 u=1
@@ -16,12 +16,12 @@ if __name__ == '__main__':
     # data_set = 'dataset/TOX.txt'    # K=20 u=10
     # data_set = 'dataset/Jaffe.txt'    # K=10  u=0.1
 
-    # fea, labels = loadData.load_coil100()
+    fea, labels = loadData.load_coil100()    # K=25 u=1 v=0.1
 
-    data = np.loadtxt(data_set)
-    fea = data[:, :-1]
-    labels = data[:, -1]
-    print("data_set = %s    data.shape = %s" % (data_set, fea.shape))
+    # data = np.loadtxt(data_set)
+    # fea = data[:, :-1]
+    # labels = data[:, -1]
+    # print("data_set = %s    data.shape = %s" % (data_set, fea.shape))
 
     print("------ Normalizing data ------")
     # tool.data_Normalized(fea)
@@ -29,12 +29,12 @@ if __name__ == '__main__':
     Normalizer.fit(fea)
     fea = Normalizer.transform(fea)
 
-    u = 1
-    dist = tool.rank_dis_c(fea, u)
-    dist = dist - np.diag(np.diag(dist))
+    # u = 1
+    # dist = tool.rank_dis_c(fea, u)
+    dist = tool.rank_order_dis(fea)
 
-    K = 15
-    v = 1
+    K = 25
+    v = 0.1
     z = 0.01
     groupNumber = len(np.unique(labels))
     ND = dist.shape[0]
