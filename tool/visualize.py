@@ -16,6 +16,7 @@ import tool
 
 digits = datasets.load_digits(n_class=6)
 X = digits.data
+# X = X[:400, :]
 y = digits.target
 n_samples, n_features = X.shape
 print("n_sample: %d, n_feature:%d"%(n_samples, n_features))
@@ -110,10 +111,6 @@ X_tsne = tsne.fit_transform(rod)
 plot_embedding(X_tsne,
                "t-SNE+KROD embedding of the digits (time %.2fs)" %
                (time() - t0))
-
-
-
-
 
 
 plt.show()
